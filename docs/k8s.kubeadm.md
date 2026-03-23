@@ -314,9 +314,9 @@ kubeadm version
 ```
 
 5) Plan upgrade
-Not needed on other CP nodes.
 
 ```bash
+# only on the first CP node
 sudo kubeadm upgrade plan
 ```
 
@@ -330,7 +330,7 @@ sudo kubeadm upgrade apply v1.33.x
 
 Other CP nodes:
 ```bash
-sudo kubeadm upgrade apply
+sudo kubeadm upgrade node
 ```
 
 7) Manually upgrade your CNI provider plugin if necessary:
@@ -374,45 +374,55 @@ Repeat 1-11 for all CP nodes.
 
 ### Upgrade worker nodes
 
-TODO describe
+1) Upgrade kubeadm 
 
+```bash
+sudo vim /etc/apt/sources.list.d/kubernetes.list
 
-Upgrade one worker node at a time to make sure workloads can be run.
+sudo apt update
+sudo apt-cache madison kubeadm
 
-7) Repeat steps 1) 2) 3) planning (4) is not necessary, CNI upgrade neither.
-
-
-8) Upgrade node
+# replace x in 1.33.9-1.1 with the latest patch version
+sudo apt-mark unhold kubeadm && \
+sudo apt-get update && sudo apt-get install -y kubeadm='1.33.9-1.1' && \
+sudo apt-mark hold kubeadm
 ```
-sudo kubeadm upgrade node
-```
 
-### Worker nodes (one at a time)
-
-9) Repeat steps 1) 2) 3) 
-
-10) Upgrade node
+2) Call "kubeadm upgrade"
 ```bash
 sudo kubeadm upgrade node
 ```
 
-9) Drain the node
-```bash
-kubectl drain <node-to-cordon> --ignore-daemonsets
+3) Drain the node 
+``` bash
+# execute this command on a control plane node
+# replace <node-to-drain> with the name of your node you are draining
+kubectl drain <node-to-drain> --ignore-daemonsets
 ```
 
+4) Upgrade kubelet and kubectl 
+```bash
+# replace x in 1.33.9-1.1 with the latest patch version
+sudo apt-mark unhold kubelet kubectl && \
+sudo apt-get update && sudo apt-get install -y kubelet='1.33.9-1.1' kubectl='1.33.9-1.1' && \
+sudo apt-mark hold kubelet kubectl
+```
 
-
-11) Restart kubelet
+Restart the kubelet:
 ```bash
 sudo systemctl daemon-reload
 sudo systemctl restart kubelet
 ```
 
-13) Uncordon node
+5) Uncordon the node
 ```bash
+# execute this command on a control plane node
+# replace <node-to-uncordon> with the name of your node
 kubectl uncordon <node-to-uncordon>
 ```
+
+Upgrade other worker nodes the same way.
+
 
 ### Check cluster status
 ```bash
@@ -428,11 +438,9 @@ After the cluster upgrade using kubeadm, the backup directory /etc/kubernetes/tm
 
 
 
-
-
 ## Example deployments
 
-This repo includes a couple of simple reusable manifests under `scripts/kubeadm/examples/`:
+This repo includes a couple of simple reusable manifests under `workloads/`:
 
 - `00-namespace.yaml` creates a `demo` namespace for the examples
 - `busybox.yaml` creates a long-running BusyBox pod for troubleshooting
@@ -441,9 +449,9 @@ This repo includes a couple of simple reusable manifests under `scripts/kubeadm/
 Apply them from the repo root:
 
 ```bash
-kubectl apply -f scripts/kubeadm/examples/00-namespace.yaml
-kubectl apply -f scripts/kubeadm/examples/busybox.yaml
-kubectl apply -f scripts/kubeadm/examples/nginx.yaml
+kubectl apply -f workloads/00-namespace.yaml
+kubectl apply -f workloads/busybox.yaml
+kubectl apply -f workloads/nginx.yaml
 ```
 
 Check that the workloads are up:
