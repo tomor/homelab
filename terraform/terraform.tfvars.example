@@ -1,8 +1,0 @@
-# Copy this file to terraform.tfvars and adjust values as needed.
-# terraform.tfvars is gitignored — safe to put your actual values there.
-
-vm_name      = "k8s-node"
-cpus         = 2
-memory       = "4G"
-disk         = "20G"
-ubuntu_image = "24.04"

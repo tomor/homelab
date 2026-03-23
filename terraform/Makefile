@@ -1,30 +1,32 @@
-.PHONY: init plan apply destroy validate fmt clean
+.PHONY: help init plan apply destroy validate fmt clean
 
-# Run once when setting up the directory, after changing providers/modules,
-# or after pulling Terraform changes that affect dependencies.
+ENV ?= kubeadm
+ENV_DIR := envs/$(ENV)
+
+help:
+	@echo "Usage: make <target> ENV=<kubeadm|rke2>"
+	@echo "Example: make plan ENV=rke2"
+
 init:
-	terraform init
+	terraform -chdir=$(ENV_DIR) init
 
-# Run after editing Terraform files to catch syntax and configuration errors.
 validate:
-	terraform validate
+	terraform -chdir=$(ENV_DIR) validate
 
-# Run before committing to keep Terraform files consistently formatted.
 fmt:
 	terraform fmt -recursive
 
-# Run before apply to preview infrastructure changes safely.
 plan:
-	terraform plan
+	terraform -chdir=$(ENV_DIR) plan
 
-# Run after reviewing the plan to create or update infrastructure.
 apply:
-	terraform apply
+	terraform -chdir=$(ENV_DIR) apply
 
-# Run only when you intentionally want to remove managed infrastructure.
 destroy:
-	terraform destroy
+	terraform -chdir=$(ENV_DIR) destroy
 
-# Run when you need to remove local Terraform cache and state files.
 clean:
-	rm -rf .terraform .terraform.lock.hcl terraform.tfstate terraform.tfstate.backup
+	rm -rf $(ENV_DIR)/.terraform \
+		$(ENV_DIR)/.terraform.lock.hcl \
+		$(ENV_DIR)/terraform.tfstate \
+		$(ENV_DIR)/terraform.tfstate.backup
