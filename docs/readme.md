@@ -26,6 +26,7 @@ sudo kubeadm join 192.168.2.22:6443 --token axxcj0.mdp8vpgfyzzk23u1 --discovery-
   192.168.2.1 via 192.168.2.25 dev tunl0 proto bird onlink
   ``` 
 - VM stop/start recovers it
+- I'm testing Flannel 
 
 
 ## Progress tracking

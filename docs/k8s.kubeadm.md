@@ -92,13 +92,21 @@ CONTROL_PLANE_ENDPOINT=192.168.2.2:6443 ./k8s-init-cluster.sh
 
 With raw `kubeadm init`:
 
+for Calico default CIDR:
 ```bash
 sudo kubeadm init \
   --pod-network-cidr=192.168.0.0/16 \
   --control-plane-endpoint 192.168.2.2:6443
 ```
 
-(That CIDR is commonly used with Calico. The exact `--pod-network-cidr` depends on the CNI plugin you choose. kubeadm installation and cluster creation are separate steps in the official docs.)
+for Flannel default CIDR:
+```bash
+sudo kubeadm init \
+  --pod-network-cidr=10.244.0.0/16 \
+  --control-plane-endpoint 192.168.2.2:6443
+```
+
+The exact `--pod-network-cidr` depends on the CNI plugin you choose. kubeadm installation and cluster creation are separate steps in the official docs.
 
 A stable endpoint is the address all nodes use for the Kubernetes API server. In this homelab, a fixed first control-plane node IP and port such as `192.168.2.2:6443` is acceptable if you do not have a load balancer yet. For better HA later, that endpoint should usually be a DNS name, virtual IP, or load balancer address.
 
@@ -128,6 +136,12 @@ For Calico, a common command is:
 
 ```bash
 kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/master/manifests/calico.yaml
+```
+
+Flannel:
+
+```bash
+kubectl apply -f https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
 ```
 
 Make sure the pod CIDR you used with kubeadm init matches the CNI you install. This CNI step is required after bootstrap.

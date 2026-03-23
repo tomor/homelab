@@ -3,7 +3,7 @@
 # Prerequisite: k8s-prepare.sh must have been run on this node first.
 set -euxo pipefail
 
-POD_CIDR="192.168.0.0/16"
+POD_CIDR="10.244.0.0/16"
 if [[ -z "${CONTROL_PLANE_ENDPOINT:-}" ]]; then
   echo "ERROR: CONTROL_PLANE_ENDPOINT must be set, for example 192.168.2.2:6443 or k8s-api.example.lab:6443" >&2
   exit 1
@@ -23,8 +23,8 @@ mkdir -p "$HOME/.kube"
 sudo cp -i /etc/kubernetes/admin.conf "$HOME/.kube/config"
 sudo chown "$(id -u):$(id -g)" "$HOME/.kube/config"
 
-echo "==> Installing Calico CNI"
-kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/master/manifests/calico.yaml
+echo "==> Installing Flannel CNI"
+kubectl apply -f https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
 
 echo ""
 echo "✓ First control-plane node is up."
