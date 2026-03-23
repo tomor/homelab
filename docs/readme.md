@@ -21,7 +21,11 @@ sudo kubeadm join 192.168.2.22:6443 --token axxcj0.mdp8vpgfyzzk23u1 --discovery-
 
 - Using "multipass" for virtualisation
 - I've tested VirtualBox, because of issues with multipass, but I wasn't even able to start a working VM
-- The problem with VMs was not multipass. It was when I initialized the cluster the VMs got somehow overloaded and crashing and then ssh to VMs was not possible. After stopping and starting the VMs I was able to recover the k8s cluster.
+- The problem with VMs was not multipass. It was Calico installing abad route which cuts access to the VM:
+  ```bash
+  192.168.2.1 via 192.168.2.25 dev tunl0 proto bird onlink
+  ``` 
+- VM stop/start recovers it
 
 
 ## Progress tracking
