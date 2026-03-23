@@ -37,6 +37,7 @@ sudo kubeadm join 192.168.2.22:6443 --token axxcj0.mdp8vpgfyzzk23u1 --discovery-
 [x] test joining master nodes
 [x] test k8s upgrade, put some deployments there to see how they do
 [x] host os upgrade with restart
+[] install RKE2 cluster
 [] etcd backup, restore
 
 
@@ -59,6 +60,13 @@ sudo ssh -i '/var/root/Library/Application Support/multipassd/ssh-keys/id_rsa' u
 - For multi-control-plane kubeadm setup, the cluster must be created with a stable `controlPlaneEndpoint`.
 - Recovery steps, including commands to reset a failed joining node or rebuild the cluster, are documented in `docs/k8s.kubeadm.md`.
 - Kubeadm VM bootstrap assets live under `scripts/kubeadm/`, including `.bash_aliases`, which is copied to `/home/ubuntu/.bash_aliases` by cloud-init.
+
+## RKE2 notes
+
+- The first RKE2 workflow in this repo targets a single `server` node with one or more `agent` nodes.
+- RKE2 setup and operational notes are documented in `docs/k8s.rke2.md`.
+- RKE2 VM bootstrap assets live under `scripts/rke2/`, including `.bash_aliases`, which is copied to `/home/ubuntu/.bash_aliases` by cloud-init.
+- The Terraform environment in `terraform/envs/rke2/` now renders a cloud-init file that copies the RKE2 helper scripts and generated defaults onto each VM.
 
 
 - How does k8s handle concurency for controllers, eg. deployment - which node does it do? -> only one is active - sync via "lease" -> kubectl get lease -n kube-system

@@ -4,8 +4,7 @@
 *.tfstate.backup
 
 # Cloud-init output (generated files)
-# Uncomment if you add generated cloud-init files
-# terraform/cloud-init-generated.yaml
+terraform/modules/multipass-cluster/cloud-init/.rendered/*.yaml
 
 # OS
 .DS_Store

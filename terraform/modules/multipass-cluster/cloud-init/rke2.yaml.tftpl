@@ -1,0 +1,46 @@
+#cloud-config
+
+packages:
+  - curl
+  - apt-transport-https
+  - ca-certificates
+  - gnupg
+
+package_update: true
+package_upgrade: false
+
+write_files:
+  - path: /etc/motd
+    permissions: "0644"
+    content: |
+      rke2 test node
+
+  - path: /tmp/rke2-prepare.sh
+    permissions: "0755"
+    encoding: b64
+    content: ${rke2_prepare_script_b64}
+
+  - path: /tmp/rke2-init-server.sh
+    permissions: "0755"
+    encoding: b64
+    content: ${rke2_init_server_script_b64}
+
+  - path: /tmp/rke2-join-agent.sh
+    permissions: "0755"
+    encoding: b64
+    content: ${rke2_join_agent_script_b64}
+
+  - path: /tmp/.bash_aliases
+    permissions: "0644"
+    encoding: b64
+    content: ${bash_aliases_b64}
+
+  - path: /tmp/rke2.env
+    permissions: "0644"
+    encoding: b64
+    content: ${rke2_env_b64}
+
+runcmd:
+  - systemctl enable --now ssh
+  - cp /tmp/rke2-prepare.sh /tmp/rke2-init-server.sh /tmp/rke2-join-agent.sh /tmp/.bash_aliases /tmp/rke2.env /home/ubuntu/
+  - chown ubuntu:ubuntu /home/ubuntu/rke2-prepare.sh /home/ubuntu/rke2-init-server.sh /home/ubuntu/rke2-join-agent.sh /home/ubuntu/.bash_aliases /home/ubuntu/rke2.env

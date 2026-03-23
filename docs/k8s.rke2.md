@@ -1,0 +1,299 @@
+# Installing and managing Kubernetes with RKE2
+
+Note: for execution on the hosts, scripts from `scripts/rke2/` are copied to the VM home directory during bootstrap.
+
+## Terraform provisioning
+
+From the repo root:
+
+```bash
+cd terraform
+make init E=rke2
+make apply E=rke2
+```
+
+The default `terraform/envs/rke2/terraform.tfvars` provisions:
+
+- one server node: `rke2-server-1`
+- one agent node: `rke2-agent-1`
+
+Check the VM IPs after apply:
+
+```bash
+cd terraform/envs/rke2
+terraform output ipv4
+```
+
+The Terraform environment now renders a cloud-init file that copies these helpers into `/home/ubuntu/` on each VM:
+
+- `rke2-prepare.sh`
+- `rke2-init-server.sh`
+- `rke2-join-agent.sh`
+- `.bash_aliases`
+- `rke2.env`
+
+`rke2.env` is generated from Terraform and currently carries the default RKE2 release channel and CNI choice.
+
+## Prepare every node
+
+Run this on the server node and on every agent node first:
+
+```bash
+./rke2-prepare.sh
+```
+
+What it does:
+
+- disables swap
+- loads `overlay` and `br_netfilter`
+- configures the required sysctl settings
+- installs common host packages, including AppArmor tools
+- creates `/etc/rancher/rke2/`
+
+Unlike the kubeadm flow in this repo, this script does **not** install containerd or Kubernetes packages directly. RKE2 bundles and manages its own Kubernetes components and container runtime.
+
+## Bootstrap the first server
+
+Log in to the first server node and run:
+
+```bash
+./rke2-init-server.sh
+```
+
+By default the script:
+
+- installs RKE2 from the configured channel
+- writes `/etc/rancher/rke2/config.yaml`
+- enables and starts `rke2-server`
+- copies `/etc/rancher/rke2/rke2.yaml` to `$HOME/.kube/config`
+- prints the node token and a ready-to-use agent join command
+
+The server listens on:
+
+- `9345` for node registration
+- `6443` for the Kubernetes API
+
+### Optional server settings
+
+You can override the defaults before running `rke2-init-server.sh`:
+
+```bash
+INSTALL_RKE2_CHANNEL=latest RKE2_CNI=cilium ./rke2-init-server.sh
+```
+
+You can also add TLS SANs if you want the server certificate to include a fixed IP or DNS name:
+
+```bash
+TLS_SAN="192.168.2.30,rke2-api.lab" ./rke2-init-server.sh
+```
+
+For this first rollout, a direct first-server IP is acceptable. Multi-server HA can come later.
+
+## Join an agent node
+
+On the server node, read the join token if you need it again:
+
+```bash
+sudo cat /var/lib/rancher/rke2/server/node-token
+```
+
+On the agent node, run:
+
+```bash
+SERVER_URL=https://<server-ip>:9345 \
+RKE2_TOKEN=<token> \
+./rke2-join-agent.sh
+```
+
+Example:
+
+```bash
+SERVER_URL=https://192.168.2.30:9345 \
+RKE2_TOKEN=K10d1d0... \
+./rke2-join-agent.sh
+```
+
+The agent script installs the RKE2 agent service, writes `/etc/rancher/rke2/config.yaml`, and starts `rke2-agent`.
+
+## Access kubectl on the server node
+
+RKE2 ships `kubectl` under:
+
+```bash
+/var/lib/rancher/rke2/bin/kubectl
+```
+
+This repo's `.bash_aliases` adds that directory to `PATH` and exports:
+
+```bash
+KUBECONFIG=/etc/rancher/rke2/rke2.yaml
+```
+
+Useful checks:
+
+```bash
+kubectl get nodes -o wide
+kubectl get pods -A
+```
+
+If your current shell was open before the aliases were copied, reload them:
+
+```bash
+source ~/.bash_aliases
+```
+
+## Validate the cluster
+
+After the server and agent are up:
+
+```bash
+kubectl get nodes
+kubectl get pods -A
+```
+
+Then test the existing example workloads from this repo:
+
+```bash
+kubectl apply -f workloads/00-namespace.yaml
+kubectl apply -f workloads/busybox.yaml
+kubectl apply -f workloads/nginx.yaml
+kubectl get all -n demo
+```
+
+Quick connectivity checks:
+
+```bash
+kubectl exec -it -n demo busybox-demo -- nslookup nginx-demo
+kubectl exec -it -n demo busybox-demo -- wget -qO- http://nginx-demo
+```
+
+## Useful day-2 operations
+
+### Logs
+
+Server:
+
+```bash
+sudo journalctl -u rke2-server -f
+```
+
+Agent:
+
+```bash
+sudo journalctl -u rke2-agent -f
+```
+
+### Restart services
+
+Server:
+
+```bash
+sudo systemctl restart rke2-server
+```
+
+Agent:
+
+```bash
+sudo systemctl restart rke2-agent
+```
+
+### Upgrade
+
+Upgrade servers first, one at a time, then agents.
+
+Server:
+
+```bash
+curl -sfL https://get.rke2.io | sudo INSTALL_RKE2_CHANNEL=stable sh -
+sudo systemctl restart rke2-server
+```
+
+Agent:
+
+```bash
+curl -sfL https://get.rke2.io | sudo INSTALL_RKE2_CHANNEL=stable INSTALL_RKE2_TYPE=agent sh -
+sudo systemctl restart rke2-agent
+```
+
+If you want a newer stream for lab testing, use `INSTALL_RKE2_CHANNEL=latest` or a specific version with `INSTALL_RKE2_VERSION=...`.
+
+### etcd snapshots on the single server
+
+RKE2 uses embedded etcd on the server node in this setup. Scheduled snapshots are enabled by default.
+
+List snapshots:
+
+```bash
+sudo rke2 etcd-snapshot list
+```
+
+Create an on-demand snapshot:
+
+```bash
+sudo rke2 etcd-snapshot save --name on-demand
+```
+
+Default snapshot storage:
+
+```bash
+/var/lib/rancher/rke2/server/db/snapshots
+```
+
+### Restore a single-server snapshot
+
+This is destructive for the current cluster state. Stop and verify what you are restoring before you run it.
+
+```bash
+sudo systemctl stop rke2-server
+sudo rke2 server \
+  --cluster-reset \
+  --cluster-reset-restore-path=<path-to-snapshot>
+sudo systemctl start rke2-server
+```
+
+After restore, agent nodes can reconnect normally.
+
+## Troubleshooting
+
+### Check service state
+
+```bash
+sudo systemctl status rke2-server
+sudo systemctl status rke2-agent
+```
+
+### Node did not join
+
+Verify:
+
+- `SERVER_URL` points to `https://<server-ip>:9345`
+- the token matches `/var/lib/rancher/rke2/server/node-token`
+- the agent hostname is unique
+- the server is healthy and reachable on `9345`
+
+### kubectl not found
+
+Reload aliases or use the full path:
+
+```bash
+export PATH=$PATH:/var/lib/rancher/rke2/bin
+export KUBECONFIG=/etc/rancher/rke2/rke2.yaml
+kubectl get nodes
+```
+
+### Clean up a node
+
+The install script provides cleanup helpers:
+
+```bash
+sudo rke2-killall.sh
+sudo rke2-uninstall.sh
+```
+
+These are destructive for that node's RKE2 state.
+
+## Notes
+
+- RKE2 defaults to a packaged CNI. This repo keeps the default as `canal` unless you override it.
+- The Kubernetes API is still on `6443`, but new nodes join through the RKE2 registration port `9345`.
+- For this repo's first RKE2 pass, single-server plus agents is the intended learning path. Multi-server HA should be added later once the simpler workflow has been exercised.
