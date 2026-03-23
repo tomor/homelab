@@ -16,7 +16,8 @@ Learning terraform, then kubernetest installation, first on my Macbook pro M3
 [x] Basic terrraform setups for 1 local VM in multipass
 [x] install kubernetes manually to one host
 [] install kubernetes manually to multiple hosts (use join..)
-[] test joining master nodes and worker nodes
+[x] test joining multiple worker nodes
+[] test joining master nodes
 [] test k8s upgrade, put some deployments there to see how they do
 
 ## Multipass troubleshooting
