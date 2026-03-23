@@ -37,7 +37,6 @@ sudo kubeadm join 192.168.2.22:6443 --token axxcj0.mdp8vpgfyzzk23u1 --discovery-
 [x] test joining master nodes
 [x] test k8s upgrade, put some deployments there to see how they do
 [x] host os upgrade with restart
-[] how is k8s handling concurency for controllers, eg. deployment - which node does it handle?
 [] etcd backup, restore
 
 
@@ -60,6 +59,9 @@ sudo ssh -i '/var/root/Library/Application Support/multipassd/ssh-keys/id_rsa' u
 - For multi-control-plane kubeadm setup, the cluster must be created with a stable `controlPlaneEndpoint`.
 - Recovery steps, including commands to reset a failed joining node or rebuild the cluster, are documented in `docs/k8s.kubeadm.md`.
 - Kubeadm VM bootstrap assets live under `scripts/kubeadm/`, including `.bash_aliases`, which is copied to `/home/ubuntu/.bash_aliases` by cloud-init.
+
+
+- How does k8s handle concurency for controllers, eg. deployment - which node does it do? -> only one is active - sync via "lease" -> kubectl get lease -n kube-system
 
 ## Terraforms notes
 
