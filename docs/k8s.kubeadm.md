@@ -90,6 +90,24 @@ sudo kubeadm init --pod-network-cidr=192.168.0.0/16
 
 (That CIDR is commonly used with Calico. The exact --pod-network-cidr depends on the CNI plugin you choose. kubeadm installation and cluster creation are separate steps in the official docs.)
 
+If you want to add more control-plane nodes later, initialize the cluster with a stable `controlPlaneEndpoint` from the start.
+
+With the helper script in this repo:
+
+```bash
+CONTROL_PLANE_ENDPOINT=k8s-api.example.lab:6443 ./k8s-init-controlplane.sh
+```
+
+With raw `kubeadm init`:
+
+```bash
+sudo kubeadm init \
+  --pod-network-cidr=192.168.0.0/16 \
+  --control-plane-endpoint k8s-api.example.lab:6443
+```
+
+A stable endpoint is an address that all nodes use for the Kubernetes API server and that will stay valid as you add more control-plane nodes. In a small homelab, that can be a manually chosen DNS name or fixed IP and port. For better HA later, that endpoint should usually point to a virtual IP or load balancer.
+
 Then configure kubectl for your normal user:
 
 ```bash
@@ -106,7 +124,7 @@ kubeadm join 192.168.2.2:6443 --token ivme4y.sap5k3hzhqnusd9j \
  --discovery-token-ca-cert-hash sha256:435a437746ac81b071ab631912a278c13e61e154b67fe6a861ba0b758ec6303c
 ```
 
-Do not run `kubeadm init` or `k8s-init-controlplane.sh` on a second control-plane node. Additional control-plane nodes must join the existing cluster.
+Do not run `kubeadm init` or `k8s-init-controlplane.sh` on a second control-plane node. Additional control-plane nodes must join the existing cluster, and that only works if the cluster was initialized with a stable `controlPlaneEndpoint`.
 
 # Install a CNI plugin
 
@@ -156,6 +174,8 @@ sudo kubeadm token create --print-join-command
 
 ## Join an additional control-plane node
 
+This only works if the first control-plane node was initialized with a stable `controlPlaneEndpoint`.
+
 1. On the new control-plane node, run `k8s-prepare.sh` first.
 2. On an existing control-plane node, upload the control-plane certificates and note the certificate key:
 
@@ -184,6 +204,26 @@ sudo kubeadm join <CONTROL_PLANE_IP>:6443 --token <TOKEN> \
 ```
 
 Do not run `k8s-init-controlplane.sh` on additional control-plane nodes. That script is only for creating the cluster on the first control-plane node.
+
+## If the cluster was created without `controlPlaneEndpoint`
+
+If you see an error like:
+
+```text
+unable to add a new control plane instance to a cluster that doesn't have a stable controlPlaneEndpoint address
+```
+
+then the cluster was bootstrapped without a stable API endpoint.
+
+The simplest recovery path is:
+
+1. Reset the new node you tried to join.
+2. Recreate the cluster from the first control-plane node with `CONTROL_PLANE_ENDPOINT=<stable endpoint>:6443 ./k8s-init-controlplane.sh` or the equivalent `kubeadm init --control-plane-endpoint ...` command.
+3. Join worker and additional control-plane nodes again.
+
+More advanced options for later include putting the control plane behind a virtual IP or TCP load balancer. See the Kubernetes kubeadm HA guide:
+
+https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/high-availability/
 
 Useful check:
 ```bash

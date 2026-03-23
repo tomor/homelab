@@ -4,9 +4,22 @@
 set -euxo pipefail
 
 POD_CIDR="192.168.0.0/16"
+CONTROL_PLANE_ENDPOINT="${CONTROL_PLANE_ENDPOINT:-}"
+KUBEADM_INIT_ARGS=(--pod-network-cidr="${POD_CIDR}")
+
+if [[ -n "${CONTROL_PLANE_ENDPOINT}" ]]; then
+  KUBEADM_INIT_ARGS+=(--control-plane-endpoint "${CONTROL_PLANE_ENDPOINT}")
+fi
 
 echo "==> Initializing Kubernetes control plane (pod CIDR: ${POD_CIDR})"
-sudo kubeadm init --pod-network-cidr="${POD_CIDR}"
+if [[ -n "${CONTROL_PLANE_ENDPOINT}" ]]; then
+  echo "==> Using stable control-plane endpoint: ${CONTROL_PLANE_ENDPOINT}"
+else
+  echo "==> No CONTROL_PLANE_ENDPOINT set"
+  echo "    This is fine for a single control-plane cluster,"
+  echo "    but you will not be able to add more control-plane nodes later."
+fi
+sudo kubeadm init "${KUBEADM_INIT_ARGS[@]}"
 
 echo "==> Configuring kubectl for current user"
 mkdir -p "$HOME/.kube"
@@ -26,10 +39,15 @@ kubeadm token create --print-join-command | sed 's/^/  sudo /'
 
 echo ""
 echo "  Additional control-plane nodes (after k8s-prepare.sh):"
-echo "    1) On this node, run: sudo kubeadm init phase upload-certs --upload-certs"
-echo "    2) On this node, run: sudo kubeadm token create --print-join-command"
-echo "    3) On the new control-plane node, run the join command with:"
-echo "       --control-plane --certificate-key <key>"
+if [[ -n "${CONTROL_PLANE_ENDPOINT}" ]]; then
+  echo "    1) On this node, run: sudo kubeadm init phase upload-certs --upload-certs"
+  echo "    2) On this node, run: sudo kubeadm token create --print-join-command"
+  echo "    3) On the new control-plane node, run the join command with:"
+  echo "       --control-plane --certificate-key <key>"
+else
+  echo "    To support additional control-plane nodes, recreate the cluster with:"
+  echo "      CONTROL_PLANE_ENDPOINT=<stable DNS name or IP:6443> ./k8s-init-controlplane.sh"
+fi
 
 echo ""
 echo "========================================"
