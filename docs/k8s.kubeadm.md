@@ -281,9 +281,10 @@ sudo kubeadm token list
 
 See https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-upgrade/ for more info.
 
+Pre upgrade tasks
+-  Check release notes https://github.com/kubernetes/kubernetes/tree/master/CHANGELOG
+- backup etcd
 
-0) Check release notes
-  https://github.com/kubernetes/kubernetes/tree/master/CHANGELOG
 
 ### Upgrade control plane nodes
 
@@ -436,6 +437,28 @@ See https://v1-33.docs.kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubea
 Note:
 After the cluster upgrade using kubeadm, the backup directory /etc/kubernetes/tmp will remain and these backup files will need to be cleared manually.
 
+
+## OS update
+
+1.	Cordon and drain one node
+2.	Upgrade/reboot that node
+3.	Wait until it comes back Ready
+4.	Uncordon it
+5.	Repeat node by node
+
+Note:  When Graceful node shutdown is configured, the draining of workloads is done automaticaly durign node shutdown.
+
+It's not meant for upgrades, rather quick reboots or sudden VM shutdowns which are still controlled (sudo reboot now).
+
+See https://kubernetes.io/docs/concepts/cluster-administration/node-shutdown/
+
+TL&DR;
+
+```bash
+# kubelet config:
+shutdownGracePeriod: 30s
+shutdownGracePeriodCriticalPods: 10s
+```
 
 
 ## Example deployments
