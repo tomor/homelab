@@ -107,8 +107,9 @@ Make sure the pod CIDR you used with kubeadm init matches the CNI you install. T
 
 
 ## Remove taint - for 1 node cluster only!
+Taints:             node-role.kubernetes.io/control-plane:NoSchedule
 ```
-kubectl taint nodes --all node-role.kubernetes.io/control-plane-
+kubectl taint nodes --all node-role.kubernetes.io/control-plane:NoSchedule-
 ```
 
 ## Join workers
@@ -119,3 +120,11 @@ Run the kubeadm join ... command printed by kubeadm init on each worker node, fo
 sudo kubeadm join <CONTROL_PLANE_IP>:6443 --token <TOKEN> \
   --discovery-token-ca-cert-hash sha256:<HASH>
 ```
+
+
+## Test running workloads
+
+
+kubectl run -it busybox --image=busybox --restart=Never -- echo "hoj"
+
+kubectl run nginx --image=nginx
