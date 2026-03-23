@@ -38,10 +38,11 @@ sudo kubeadm join 192.168.2.22:6443 --token axxcj0.mdp8vpgfyzzk23u1 --discovery-
 [x] test k8s upgrade, put some deployments there to see how they do
 [x] host os upgrade with restart
 [x] install RKE2 cluster
+[x] rke2 upgrade
 [] load balancer / ingress
 [] API gateway
 [] etcd backup, restore
-[] rke2 upgrade
+[] storage
 
 
 ## Multipass troubleshooting

@@ -244,19 +244,63 @@ sudo systemctl restart rke2-agent
 
 Upgrade servers first, one at a time, then agents.
 
-Server:
+Do not skip intermediate minor versions when upgrading. The reason is k8s skew policy https://kubernetes.io/releases/version-skew-policy/
 
+1. Check release notes: https://docs.rke2.io/release-notes/v1.32.X
+2. Back up etcd / datastore state before touching the control plane.
 ```bash
-curl -sfL https://get.rke2.io | sudo INSTALL_RKE2_VERSION=v1.32.5+rke2r1 sh -
+sudo rke2 etcd-snapshot save
+```
+3. For each node:
+  a) Cordon and drain the node
+  Execute from local computer, not from the Server node!
+
+  Note: Draining the first CP node took a lot of time, stuck?. I've started the command from the server node itself. Then I canceled it after some time. Then upgraded. Some pods got stuck in terminating state (dns, metrics-server, snapshot-controller)
+```bash
+kubectl drain <node> --ignore-daemonsets --delete-emptydir-data
+```
+  b) stop/upgrade/start the RKE2 service on that node
+    Server:
+```bash
+curl -sfL https://get.rke2.io | sudo INSTALL_RKE2_VERSION=v1.32.13+rke2r1 sh -
 sudo systemctl restart rke2-server
 ```
 
-Agent:
-
+    Agent:
 ```bash
-curl -sfL https://get.rke2.io | sudo INSTALL_RKE2_VERSION=v1.32.5+rke2r1 INSTALL_RKE2_TYPE=agent sh -
+curl -sfL https://get.rke2.io | sudo INSTALL_RKE2_VERSION=v1.32.13+rke2r1 INSTALL_RKE2_TYPE=agent sh -
 sudo systemctl restart rke2-agent
 ```
+  c) wait until the node returns Ready
+  d) uncordon when appropriate
+  ```bash
+  kubectl uncordon <node>
+  ```
+
+
+#### Upgrade notes
+
+After upgrade of first server node, there are some helm charts crashing. That's expected, shall be fixed after all server nodes are upgraded ... TODO check
+```
+k get pod -A -owide | grep -v Running
+NAMESPACE     NAME                                                   READY   STATUS              RESTARTS      AGE     IP             NODE            NOMINATED NODE   READINESS GATES
+kube-system   helm-install-rke2-canal-xnv5t                          0/1     CrashLoopBackOff    9 (62s ago)   21m     192.168.2.43   rke2-server-3   <none>           <none>
+kube-system   helm-install-rke2-coredns-zrpz6                        0/1     CrashLoopBackOff    9 (45s ago)   21m     192.168.2.43   rke2-server-3   <none>           <none>
+kube-system   helm-install-rke2-ingress-nginx-5m25w                  0/1     ContainerCreating   0             21m     <none>         rke2-agent-1    <none>           <none>
+kube-system   helm-install-rke2-metrics-server-qbkhc                 0/1     Completed           2             21m     10.42.5.9      rke2-agent-2    <none>           <none>
+kube-system   helm-install-rke2-runtimeclasses-gjvgg                 0/1     Completed           0             21m     10.42.5.7      rke2-agent-2    <none>           <none>
+kube-system   helm-install-rke2-snapshot-controller-crd-mm4p2        0/1     ContainerCreating   0             21m     <none>         rke2-agent-1    <none>           <none>
+kube-system   helm-install-rke2-snapshot-controller-kc5hg            0/1     Completed           1             21m     10.42.5.8      rke2-agent-2    <none>           <none>
+```
+
+```
+k logs -n kube-system helm-install-rke2-canal-xnv5t
+Error: UPGRADE FAILED: chart requires kubeVersion: >= v1.32.13 which is incompatible with Kubernetes v1.31.14+rke2r1
+```
+
+It fixed itself after upgrading the rke2-server-2 .
+-
+
 
 Prefer upgrading to an explicit newer `INSTALL_RKE2_VERSION=...` so you know exactly what version you are moving to. Be careful not to downgrade: always move forward to a newer RKE2 version, never apply an older version over an existing node.
 
