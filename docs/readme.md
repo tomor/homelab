@@ -39,9 +39,10 @@ sudo kubeadm join 192.168.2.22:6443 --token axxcj0.mdp8vpgfyzzk23u1 --discovery-
 [x] host os upgrade with restart
 [x] install RKE2 cluster
 [x] rke2 upgrade
+[x] etcd backup, restore (RKE2)
 [] load balancer / ingress
 [] API gateway
-[] etcd backup, restore
+[] etcd backup, restore (kubeadm)
 [] storage
 
 
@@ -88,3 +89,12 @@ make stop E=rke2
 ```bash
 terraform apply -replace='module.cluster.multipass_instance.node["kubeadm-cp-1"]'
 ```
+
+
+## Usefull notes
+
+### Can you do an etcd restore with zero workload disruption?
+That is generally not the purpose of snapshot restore. Snapshot restore is mostly for disaster recovery, corruption, or “rewind the cluster to a known-good state.” It is not a live, zero-downtime repair mechanism for a healthy production control plane.
+
+My experience from RKE2: Workloads kept first running at first, but after joining the 2nd and 3rd server node pods networking got corrupted and rke2-agent on the agent nodes as well as CNI (canal) had to be restarted.
+

@@ -321,9 +321,21 @@ Default snapshot storage:
 /var/lib/rancher/rke2/server/db/snapshots
 ```
 
-### Restore a single-server snapshot
+### Restore a etcd snapshot
 
 Docs for HA setup: https://docs.rke2.io/datastore/backup_restore?etcdsnap=Multiple+Servers
+
+More info: https://kubernetes.io/docs/tasks/administer-cluster/configure-upgrade-etcd/#restoring-an-etcd-cluster
+
+Caution:
+If any API servers are running in your cluster, you should not attempt to restore instances of etcd. Instead, follow these steps to restore etcd:
+
+- stop all API server instances
+- restore state in all etcd instances
+- restart all API server instances
+
+The Kubernetes project also recommends restarting Kubernetes components (kube-scheduler, kube-controller-manager, kubelet) to ensure that they don't rely on some stale data. In practice the restore takes a bit of time. During the restoration, critical components will lose leader lock and restart themselves.
+
 
 This is destructive for the current cluster state. Stop and verify what you are restoring before you run it.
 
