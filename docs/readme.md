@@ -19,14 +19,13 @@ sudo kubeadm join 192.168.2.22:6443 --token axxcj0.mdp8vpgfyzzk23u1 --discovery-
 
 ## Notes
 
-- Using "multipass" for virtualisation
-- I've tested VirtualBox, because of issues with multipass, but I wasn't even able to start a working VM
-- The problem with VMs was not multipass. It was Calico installing abad route which cuts access to the VM:
-  ```bash
+- Using "multipass" for virtualisation.
+- I've tested VirtualBox, because of issues with multipass, but I wasn't even able to start a working VM.
+- I came back to multipass and found out the issue was not multipass, but Calico intalling wrong route on the VM which made the VM appear "dead" - it was unreachable. VM stop/start recovered the issue because the route was not permanent.
+  ```
   192.168.2.1 via 192.168.2.25 dev tunl0 proto bird onlink
   ``` 
-- VM stop/start recovers it
-- I'm testing Flannel 
+- I'm testing Flannel now.
 
 
 ## Progress tracking
