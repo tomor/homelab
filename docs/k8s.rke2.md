@@ -280,29 +280,24 @@ sudo systemctl restart rke2-agent
 
 #### Upgrade notes
 
-After upgrade of first server node, there are some helm charts crashing. That's expected, shall be fixed after all server nodes are upgraded ... TODO check
+##### Crashing helm charts
+After upgrade of first server node, there are some helm charts crashing. That's expected, it fixes itself after continuing the upgrade on the second server node.
 ```
 k get pod -A -owide | grep -v Running
 NAMESPACE     NAME                                                   READY   STATUS              RESTARTS      AGE     IP             NODE            NOMINATED NODE   READINESS GATES
 kube-system   helm-install-rke2-canal-xnv5t                          0/1     CrashLoopBackOff    9 (62s ago)   21m     192.168.2.43   rke2-server-3   <none>           <none>
 kube-system   helm-install-rke2-coredns-zrpz6                        0/1     CrashLoopBackOff    9 (45s ago)   21m     192.168.2.43   rke2-server-3   <none>           <none>
 kube-system   helm-install-rke2-ingress-nginx-5m25w                  0/1     ContainerCreating   0             21m     <none>         rke2-agent-1    <none>           <none>
-kube-system   helm-install-rke2-metrics-server-qbkhc                 0/1     Completed           2             21m     10.42.5.9      rke2-agent-2    <none>           <none>
-kube-system   helm-install-rke2-runtimeclasses-gjvgg                 0/1     Completed           0             21m     10.42.5.7      rke2-agent-2    <none>           <none>
 kube-system   helm-install-rke2-snapshot-controller-crd-mm4p2        0/1     ContainerCreating   0             21m     <none>         rke2-agent-1    <none>           <none>
-kube-system   helm-install-rke2-snapshot-controller-kc5hg            0/1     Completed           1             21m     10.42.5.8      rke2-agent-2    <none>           <none>
-```
 
-```
 k logs -n kube-system helm-install-rke2-canal-xnv5t
 Error: UPGRADE FAILED: chart requires kubeVersion: >= v1.32.13 which is incompatible with Kubernetes v1.31.14+rke2r1
 ```
 
-It fixed itself after upgrading the rke2-server-2 .
--
 
+##### Donwgrade!
+Prefer upgrading to an explicit newer `INSTALL_RKE2_VERSION=...` so you know exactly what version you are moving to. Be careful not to downgrade.
 
-Prefer upgrading to an explicit newer `INSTALL_RKE2_VERSION=...` so you know exactly what version you are moving to. Be careful not to downgrade: always move forward to a newer RKE2 version, never apply an older version over an existing node.
 
 ### etcd snapshots on the single server
 
