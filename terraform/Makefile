@@ -1,11 +1,13 @@
 .PHONY: help init plan apply destroy validate fmt clean
 
-E ?= kubeadm
+E ?= rke2
 ENV_DIR := envs/$(E)
+TF_PARALLELISM ?= 1
 
 help: ## Show this help output.
 	@echo "Usage: make <target> E=<kubeadm|rke2>"
 	@echo "Example: make plan E=rke2"
+	@echo "Example: make apply E=rke2 TF_PARALLELISM=1"
 	@echo ""
 	@awk 'BEGIN {FS = ":.*## "}; /^[a-zA-Z0-9_-]+:.*## / {printf "  %-9s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
@@ -22,7 +24,7 @@ plan: ## Show the execution plan for the selected environment.
 	terraform -chdir=$(ENV_DIR) plan
 
 apply: ## Apply changes to the selected environment.
-	terraform -chdir=$(ENV_DIR) apply
+	terraform -chdir=$(ENV_DIR) apply -parallelism=$(TF_PARALLELISM)
 
 destroy: ## Tear down the selected environment.
 	terraform -chdir=$(ENV_DIR) destroy
