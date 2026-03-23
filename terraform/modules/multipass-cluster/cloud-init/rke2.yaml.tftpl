@@ -25,6 +25,11 @@ write_files:
     encoding: b64
     content: ${rke2_init_server_script_b64}
 
+  - path: /tmp/rke2-join-server.sh
+    permissions: "0755"
+    encoding: b64
+    content: ${rke2_join_server_script_b64}
+
   - path: /tmp/rke2-join-agent.sh
     permissions: "0755"
     encoding: b64
@@ -42,5 +47,5 @@ write_files:
 
 runcmd:
   - systemctl enable --now ssh
-  - cp /tmp/rke2-prepare.sh /tmp/rke2-init-server.sh /tmp/rke2-join-agent.sh /tmp/.bash_aliases /tmp/rke2.env /home/ubuntu/
-  - chown ubuntu:ubuntu /home/ubuntu/rke2-prepare.sh /home/ubuntu/rke2-init-server.sh /home/ubuntu/rke2-join-agent.sh /home/ubuntu/.bash_aliases /home/ubuntu/rke2.env
+  - cp /tmp/rke2-prepare.sh /tmp/rke2-init-server.sh /tmp/rke2-join-server.sh /tmp/rke2-join-agent.sh /tmp/.bash_aliases /tmp/rke2.env /home/ubuntu/
+  - chown ubuntu:ubuntu /home/ubuntu/rke2-prepare.sh /home/ubuntu/rke2-init-server.sh /home/ubuntu/rke2-join-server.sh /home/ubuntu/rke2-join-agent.sh /home/ubuntu/.bash_aliases /home/ubuntu/rke2.env

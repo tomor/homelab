@@ -23,6 +23,7 @@ resource "local_file" "rke2_cloud_init" {
   content = templatefile("${local.cloud_init_dir}/rke2.yaml.tftpl", {
     rke2_prepare_script_b64     = base64encode(file("${local.scripts_dir}/rke2-prepare.sh"))
     rke2_init_server_script_b64 = base64encode(file("${local.scripts_dir}/rke2-init-server.sh"))
+    rke2_join_server_script_b64 = base64encode(file("${local.scripts_dir}/rke2-join-server.sh"))
     rke2_join_agent_script_b64  = base64encode(file("${local.scripts_dir}/rke2-join-agent.sh"))
     bash_aliases_b64            = base64encode(file("${local.scripts_dir}/.bash_aliases"))
     rke2_env_b64 = base64encode(<<-EOT

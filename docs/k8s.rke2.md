@@ -13,8 +13,8 @@ make apply E=rke2
 
 The default `terraform/envs/rke2/terraform.tfvars` provisions:
 
-- one server node: `rke2-server-1`
-- one agent node: `rke2-agent-1`
+- three server nodes: `rke2-server-1`, `rke2-server-2`, `rke2-server-3`
+- two agent nodes: `rke2-agent-1`, `rke2-agent-2`
 
 Check the VM IPs after apply:
 
@@ -26,6 +26,7 @@ The Terraform environment now renders a cloud-init file that copies these helper
 
 - `rke2-prepare.sh`
 - `rke2-init-server.sh`
+- `rke2-join-server.sh`
 - `rke2-join-agent.sh`
 - `.bash_aliases`
 - `rke2.env`
@@ -34,7 +35,7 @@ The Terraform environment now renders a cloud-init file that copies these helper
 
 ## Prepare every node
 
-Run this on the server node and on every agent node first:
+Run this on every server node and every agent node first:
 
 ```bash
 ./rke2-prepare.sh
@@ -64,7 +65,7 @@ By default the script:
 - writes `/etc/rancher/rke2/config.yaml`
 - enables and starts `rke2-server`
 - copies `/etc/rancher/rke2/rke2.yaml` to `$HOME/.kube/config`
-- prints the node token and a ready-to-use agent join command
+- prints the node token plus ready-to-use server and agent join commands
 
 The server listens on:
 
@@ -87,7 +88,35 @@ You can also add TLS SANs if you want the server certificate to include a fixed 
 TLS_SAN="192.168.2.30,rke2-api.lab" ./rke2-init-server.sh
 ```
 
-For this first rollout, a direct first-server IP is acceptable. Multi-server HA can come later.
+For an in-place scale-out, using the current first-server IP as the registration endpoint is acceptable. If you later introduce a stable DNS name or VIP, add it through `TLS_SAN` so the server certificate matches that endpoint.
+
+## Join additional server nodes
+
+On the first server node, read the join token if you need it again:
+
+```bash
+sudo cat /var/lib/rancher/rke2/server/node-token
+```
+
+On each additional server node, run:
+
+```bash
+SERVER_URL=https://<existing-server-ip-or-stable-endpoint>:9345 \
+RKE2_TOKEN=<token> \
+./rke2-join-server.sh
+```
+
+Example:
+
+```bash
+SERVER_URL=https://192.168.2.30:9345 \
+RKE2_TOKEN=K10d1d0... \
+./rke2-join-server.sh
+```
+
+The server join script installs `rke2-server`, writes `/etc/rancher/rke2/config.yaml` with the registration endpoint and token, and starts the server service so the node joins the existing control plane.
+
+If `rke2.env` is not present, provide both `INSTALL_RKE2_CHANNEL` and `RKE2_CNI` explicitly before running the join script.
 
 ## Taints
 
@@ -147,12 +176,15 @@ kubectl get pods -A
 
 ## Validate the cluster
 
-After the server and agent are up:
+After the first server, the additional servers, and the agent nodes are up:
 
 ```bash
-kubectl get nodes
+kubectl get nodes -o wide
 kubectl get pods -A
+kubectl get pods -A -o wide
 ```
+
+For the default topology you should end up with five nodes total: three `server` nodes and two `agent` nodes.
 
 Then test the existing example workloads from this repo:
 
@@ -274,6 +306,16 @@ Verify:
 - the agent hostname is unique
 - the server is healthy and reachable on `9345`
 
+### Additional server node does not join
+
+Verify:
+
+- `SERVER_URL` points to `https://<existing-server-ip-or-stable-endpoint>:9345`
+- the token matches `/var/lib/rancher/rke2/server/node-token`
+- the new server hostname is unique
+- the existing server is healthy and reachable on `9345`
+- `sudo journalctl -u rke2-server -n 100` on the joining server shows registration progress rather than TLS or token errors
+
 ### kubectl not found
 
 Reload aliases or use the full path:
@@ -299,4 +341,4 @@ These are destructive for that node's RKE2 state.
 
 - RKE2 defaults to a packaged CNI. This repo keeps the default as `canal` unless you override it.
 - The Kubernetes API is still on `6443`, but new nodes join through the RKE2 registration port `9345`.
-- For this repo's first RKE2 pass, single-server plus agents is the intended learning path. Multi-server HA should be added later once the simpler workflow has been exercised.
+- This repo now supports an in-place lab scale-out to multiple RKE2 servers and agents by provisioning the extra VMs in Terraform and joining them with the helper scripts.
