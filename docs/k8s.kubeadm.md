@@ -217,9 +217,52 @@ then the cluster was bootstrapped without a stable API endpoint.
 
 The simplest recovery path is:
 
-1. Reset the new node you tried to join.
-2. Recreate the cluster from the first control-plane node with `CONTROL_PLANE_ENDPOINT=<stable endpoint>:6443 ./k8s-init-controlplane.sh` or the equivalent `kubeadm init --control-plane-endpoint ...` command.
-3. Join worker and additional control-plane nodes again.
+1. Reset the new node you tried to join:
+
+```bash
+sudo kubeadm reset -f
+sudo rm -rf /etc/cni/net.d /var/lib/cni /etc/kubernetes $HOME/.kube
+sudo systemctl restart containerd
+sudo systemctl restart kubelet
+```
+
+2. If you want to recreate the cluster cleanly, reset the whole cluster.
+
+Run this on every worker node and every additional control-plane node first:
+
+```bash
+sudo kubeadm reset -f
+sudo rm -rf /etc/cni/net.d /var/lib/cni /etc/kubernetes $HOME/.kube
+sudo systemctl restart containerd
+sudo systemctl restart kubelet
+```
+
+Then run the same reset on the original first control-plane node:
+
+```bash
+sudo kubeadm reset -f
+sudo rm -rf /etc/cni/net.d /var/lib/cni /etc/kubernetes $HOME/.kube
+sudo systemctl restart containerd
+sudo systemctl restart kubelet
+```
+
+3. Recreate the cluster from the first control-plane node with a stable endpoint:
+
+```bash
+CONTROL_PLANE_ENDPOINT=<stable endpoint>:6443 ./k8s-init-controlplane.sh
+```
+
+Or with raw kubeadm:
+
+```bash
+sudo kubeadm init \
+  --pod-network-cidr=192.168.0.0/16 \
+  --control-plane-endpoint <stable endpoint>:6443
+```
+
+4. Join worker and additional control-plane nodes again.
+
+The reset commands above are destructive for that node's Kubernetes state. Do not run them on a healthy cluster unless you really intend to rebuild it.
 
 More advanced options for later include putting the control plane behind a virtual IP or TCP load balancer. See the Kubernetes kubeadm HA guide:
 

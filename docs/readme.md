@@ -33,3 +33,8 @@ sudo ssh -i '/var/root/Library/Application Support/multipassd/ssh-keys/id_rsa' u
  ```
 
  > next time try reboot, more info in <https://github.com/canonical/multipass/issues/3766>
+
+## kubeadm notes
+
+- For multi-control-plane kubeadm setup, the cluster must be created with a stable `controlPlaneEndpoint`.
+- Recovery steps, including commands to reset a failed joining node or rebuild the cluster, are documented in `docs/k8s.kubeadm.md`.
