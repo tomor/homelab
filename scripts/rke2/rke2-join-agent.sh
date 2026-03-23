@@ -33,6 +33,8 @@ trap 'rm -f "${tmp_config}"' EXIT
 {
   echo "server: ${SERVER_URL}"
   echo "token: ${RKE2_TOKEN}"
+  echo "node-label:"
+  echo "  - ingress-ready=true"
 
   if [[ -n "${NODE_IP}" ]]; then
     echo "node-ip: ${NODE_IP}"

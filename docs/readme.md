@@ -32,7 +32,8 @@ Kubernetes Experiments on an M3 MacBook Pro
 [x] install RKE2 cluster
 [x] rke2 upgrade
 [x] etcd backup, restore (RKE2)
-[] load balancer for HA kube-api
+[x] load balancer for HA kube-api
+[] test if the HA works
 [] service with ingress
 [] API gateway
 [] etcd backup, restore (kubeadm)
@@ -80,8 +81,9 @@ make stop E=rke2
 
 ### Recreate one node
 
+Recreate the RKE2 HA proxy VM:
 ```bash
-terraform apply -replace='module.cluster.multipass_instance.node["kubeadm-cp-1"]'
+terraform -chdir=terraform/envs/rke2 apply -replace='module.load_balancer.multipass_instance.node["rke2-lb-1"]'
 ```
 
 

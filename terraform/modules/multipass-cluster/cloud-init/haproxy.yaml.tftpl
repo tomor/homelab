@@ -42,6 +42,22 @@ write_files:
 %{ for backend in api_backends ~}
         server ${backend.name} ${backend.address}:6443 check
 %{ endfor ~}
+%{ if http_backends != null ~}
+
+      frontend ${cluster_name}_http
+        bind *:80
+        mode http
+        option httplog
+        default_backend ${cluster_name}_http_backend
+
+      backend ${cluster_name}_http_backend
+        mode http
+        balance roundrobin
+        option httpchk GET /
+%{ for backend in http_backends ~}
+        server ${backend.name} ${backend.address}:80 check
+%{ endfor ~}
+%{ endif ~}
 %{ if registration_backends != null ~}
 
       frontend ${cluster_name}_registration

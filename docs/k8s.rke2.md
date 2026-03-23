@@ -30,8 +30,11 @@ The Terraform environment now renders a cloud-init file that copies these helper
 - `rke2-join-agent.sh`
 - `.bash_aliases`
 - `rke2.env`
+- `rke2-ingress-nginx-config.yaml`
 
 `rke2.env` is generated from Terraform and currently carries the pinned default RKE2 release channel (`v1.31`) plus the CNI choice. The older default is intentional so the lab can exercise RKE2 upgrades. The helper scripts expect these values to come from that generated file during the normal workflow.
+
+The generated `rke2-ingress-nginx-config.yaml` is installed automatically by the server bootstrap scripts into `/var/lib/rancher/rke2/server/manifests/`. It constrains the bundled `rke2-ingress-nginx` controller to nodes labeled `ingress-ready=true`.
 
 The same Terraform environment now also provisions a dedicated HAProxy VM for the RKE2 cluster. After `make apply E=rke2`, read the LB IP from:
 
@@ -42,7 +45,7 @@ terraform -chdir=terraform/envs/rke2 output -raw load_balancer_ipv4
 Then add a manual `/etc/hosts` entry on your workstation for:
 
 ```text
-<load-balancer-ip> rke2-api.home.arpa
+<load-balancer-ip> rke2-api.home.arpa nginx-ingress-demo.rke2.home.arpa
 ```
 
 Use that LB IP inside the cluster VMs for `SERVER_URL` and `RKE2_LB_IP`. The `.home.arpa` hostname is only for workstation access.
@@ -170,6 +173,8 @@ RKE2_TOKEN=K10d1d0... \
 
 The agent script installs the RKE2 agent service, writes `/etc/rancher/rke2/config.yaml`, and starts `rke2-agent`.
 
+The generated config also labels each agent node with `ingress-ready=true`, which is how the bundled RKE2 nginx ingress controller is constrained to agent nodes only.
+
 If `rke2.env` is not present, provide `INSTALL_RKE2_CHANNEL` explicitly before running the join script.
 
 ## Access kubectl on the server node
@@ -212,6 +217,7 @@ kubectl apply -f workloads/00-namespace.yaml
 kubectl apply -f workloads/busybox.yaml
 kubectl apply -f workloads/nginx.yaml
 kubectl apply -f workloads/nginx-nodeport.yaml
+kubectl apply -f workloads/nginx-ingress.yaml
 kubectl get all -n demo
 ```
 
@@ -228,6 +234,18 @@ To reach the NodePort example directly from your workstation:
 kubectl get nodes -o wide
 curl http://<node-ip>:30080
 ```
+
+To reach the ingress example from your workstation:
+
+```bash
+curl http://nginx-ingress-demo.rke2.home.arpa
+```
+
+The HAProxy VM now forwards:
+
+- `6443` to the RKE2 server nodes for the Kubernetes API
+- `9345` to the RKE2 server nodes for node registration
+- `80` to the RKE2 agent nodes for ingress traffic
 
 ## Useful day-2 operations
 

@@ -7,6 +7,8 @@ if [[ -f "${SCRIPT_DIR}/rke2.env" ]]; then
   source "${SCRIPT_DIR}/rke2.env"
 fi
 
+INGRESS_NGINX_CONFIG="${SCRIPT_DIR}/rke2-ingress-nginx-config.yaml"
+
 INSTALL_RKE2_CHANNEL="${INSTALL_RKE2_CHANNEL:-}"
 RKE2_CNI="${RKE2_CNI:-}"
 SERVER_URL="${SERVER_URL:-}"
@@ -86,6 +88,12 @@ trap 'rm -f "${tmp_config}"' EXIT
 echo "==> Writing /etc/rancher/rke2/config.yaml"
 sudo mkdir -p /etc/rancher/rke2
 sudo install -m 0600 "${tmp_config}" /etc/rancher/rke2/config.yaml
+
+if [[ -f "${INGRESS_NGINX_CONFIG}" ]]; then
+  echo "==> Installing bundled ingress-nginx override"
+  sudo mkdir -p /var/lib/rancher/rke2/server/manifests
+  sudo install -m 0644 "${INGRESS_NGINX_CONFIG}" /var/lib/rancher/rke2/server/manifests/rke2-ingress-nginx-config.yaml
+fi
 
 echo "==> Installing RKE2 server from channel ${INSTALL_RKE2_CHANNEL}"
 # This is ok for lab environment, but not for production.
