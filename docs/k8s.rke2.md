@@ -138,12 +138,6 @@ kubectl get nodes -o wide
 kubectl get pods -A
 ```
 
-If your current shell was open before the aliases were copied, reload them:
-
-```bash
-source ~/.bash_aliases
-```
-
 ## Validate the cluster
 
 After the server and agent are up:
@@ -206,18 +200,18 @@ Upgrade servers first, one at a time, then agents.
 Server:
 
 ```bash
-curl -sfL https://get.rke2.io | sudo INSTALL_RKE2_CHANNEL=stable sh -
+curl -sfL https://get.rke2.io | sudo INSTALL_RKE2_VERSION=v1.32.5+rke2r1 sh -
 sudo systemctl restart rke2-server
 ```
 
 Agent:
 
 ```bash
-curl -sfL https://get.rke2.io | sudo INSTALL_RKE2_CHANNEL=stable INSTALL_RKE2_TYPE=agent sh -
+curl -sfL https://get.rke2.io | sudo INSTALL_RKE2_VERSION=v1.32.5+rke2r1 INSTALL_RKE2_TYPE=agent sh -
 sudo systemctl restart rke2-agent
 ```
 
-If you want a newer stream for lab testing, use `INSTALL_RKE2_CHANNEL=stable`, `INSTALL_RKE2_CHANNEL=latest`, or a specific version with `INSTALL_RKE2_VERSION=...`.
+Prefer upgrading to an explicit newer `INSTALL_RKE2_VERSION=...` so you know exactly what version you are moving to. Be careful not to downgrade: always move forward to a newer RKE2 version, never apply an older version over an existing node.
 
 ### etcd snapshots on the single server
 
