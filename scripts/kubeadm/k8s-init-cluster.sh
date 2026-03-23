@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # k8s-init-cluster.sh — Initialize the first Kubernetes control plane (run ONCE on the first control-plane node)
 # Prerequisite: k8s-prepare.sh must have been run on this node first.
-set -euxo pipefail
+set -euo pipefail
 
 POD_CIDR="10.244.0.0/16"
 if [[ -z "${CONTROL_PLANE_ENDPOINT:-}" ]]; then
