@@ -1,10 +1,5 @@
 locals {
-  nodes = {
-    for node_name, node in var.nodes :
-    node_name => merge(node, {
-      role = try(node.role, null)
-    })
-  }
+  nodes = var.nodes
 }
 
 resource "multipass_instance" "node" {

@@ -1,11 +1,11 @@
 .PHONY: help init plan apply destroy validate fmt clean
 
-ENV ?= kubeadm
-ENV_DIR := envs/$(ENV)
+E ?= kubeadm
+ENV_DIR := envs/$(E)
 
 help:
-	@echo "Usage: make <target> ENV=<kubeadm|rke2>"
-	@echo "Example: make plan ENV=rke2"
+	@echo "Usage: make <target> E=<kubeadm|rke2>"
+	@echo "Example: make plan E=rke2"
 
 init:
 	terraform -chdir=$(ENV_DIR) init
