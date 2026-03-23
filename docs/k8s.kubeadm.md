@@ -279,13 +279,155 @@ sudo kubeadm token list
 
 ## Cluster upgrade
 
-If you are on 1.33.x and want 1.34.z:
-	•	upgrade kubeadm on first control plane
-	•	kubeadm upgrade apply v1.34.z
-	•	upgrade kubelet/kubectl there
-	•	repeat for remaining control planes
-	•	drain and upgrade workers one by one with kubeadm upgrade node
-	•	uncordon each worker after verification
+See https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-upgrade/ for more info.
+
+
+0) Check release notes
+  https://github.com/kubernetes/kubernetes/tree/master/CHANGELOG
+
+### Upgrade control plane nodes
+
+Upgrade one node at a time. First CP node has different command in step 5)
+
+1) Upgrade repositories (Ubuntu)
+```bash
+sudo vim /etc/apt/sources.list.d/kubernetes.list
+```
+
+2) Upgrade repositories (Ubuntu) and check version to upgrade to
+```bash
+sudo apt update
+sudo apt-cache madison kubeadm
+```
+
+3) Upgrade kubeadm
+```
+# replace x in 1.33.x-* with the latest patch version
+sudo apt-mark unhold kubeadm && \
+sudo apt-get update && sudo apt-get install -y kubeadm='1.33.x-*' && \
+sudo apt-mark hold kubeadm
+```
+
+4) Verify the version
+```
+kubeadm version
+```
+
+5) Plan upgrade
+Not needed on other CP nodes.
+
+```bash
+sudo kubeadm upgrade plan
+```
+
+6) Choose a version to upgrade to, and run the appropriate command. 
+
+First CP node:
+```bash
+# replace x with the patch version you picked for this upgrade
+sudo kubeadm upgrade apply v1.33.x
+```
+
+Other CP nodes:
+```bash
+sudo kubeadm upgrade apply
+```
+
+7) Manually upgrade your CNI provider plugin if necessary:
+
+Check if it's required: https://v1-33.docs.kubernetes.io/docs/concepts/cluster-administration/addons/
+
+Not necessary in my case, I already had Flannel latest version
+
+
+8) Drain the node
+```bash
+kubectl drain <nodetodrain> --ignore-daemonsets
+```
+
+9) Upgrade kubelet and kubectl
+```bash
+# replace x in 1.33.x-* with the latest patch version
+sudo apt-mark unhold kubelet kubectl && \
+sudo apt-get update && sudo apt-get install -y kubelet='1.33.x-*' kubectl='1.33.x-*' && \
+sudo apt-mark hold kubelet kubectl
+```
+
+10) Restart kubelet
+```bash
+sudo systemctl daemon-reload
+sudo systemctl restart kubelet
+```
+
+11) Uncordon
+```bash
+kubectl uncordon <node-to-uncordon>
+```
+
+12) Check cluster status
+```bash
+kubectl get nodes
+```
+
+Repeat 1-11 for all CP nodes.
+
+
+### Upgrade worker nodes
+
+TODO describe
+
+
+Upgrade one worker node at a time to make sure workloads can be run.
+
+7) Repeat steps 1) 2) 3) planning (4) is not necessary, CNI upgrade neither.
+
+
+8) Upgrade node
+```
+sudo kubeadm upgrade node
+```
+
+### Worker nodes (one at a time)
+
+9) Repeat steps 1) 2) 3) 
+
+10) Upgrade node
+```bash
+sudo kubeadm upgrade node
+```
+
+9) Drain the node
+```bash
+kubectl drain <node-to-cordon> --ignore-daemonsets
+```
+
+
+
+11) Restart kubelet
+```bash
+sudo systemctl daemon-reload
+sudo systemctl restart kubelet
+```
+
+13) Uncordon node
+```bash
+kubectl uncordon <node-to-uncordon>
+```
+
+### Check cluster status
+```bash
+kubectl get nodes
+```
+
+
+### Failure recovery
+See https://v1-33.docs.kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-upgrade/#recovering-from-a-failure-state
+
+Note:
+After the cluster upgrade using kubeadm, the backup directory /etc/kubernetes/tmp will remain and these backup files will need to be cleared manually.
+
+
+
 
 
 ## Example deployments
