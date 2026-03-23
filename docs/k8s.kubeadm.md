@@ -1,6 +1,6 @@
 # Installing k8s manually via kubeadm
 
-Note: There are shell scripts now which are copied to the VM automatically which are doing exactly this:
+Note: For execution on the hosts, scripts from `scripts/kubeadm` are copied to the VM home directory during bootstrap.
 
 ## Prepare the host
 
