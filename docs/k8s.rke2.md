@@ -30,7 +30,7 @@ The Terraform environment now renders a cloud-init file that copies these helper
 - `.bash_aliases`
 - `rke2.env`
 
-`rke2.env` is generated from Terraform and currently carries the default RKE2 release channel and CNI choice.
+`rke2.env` is generated from Terraform and currently carries the pinned default RKE2 release channel (`v1.31`) plus the CNI choice. The older default is intentional so the lab can exercise RKE2 upgrades. The helper scripts expect these values to come from that generated file during the normal workflow.
 
 ## Prepare every node
 
@@ -60,7 +60,7 @@ Log in to the first server node and run:
 
 By default the script:
 
-- installs RKE2 from the configured channel
+- installs RKE2 from the Terraform-configured channel (currently `v1.31`)
 - writes `/etc/rancher/rke2/config.yaml`
 - enables and starts `rke2-server`
 - copies `/etc/rancher/rke2/rke2.yaml` to `$HOME/.kube/config`
@@ -76,8 +76,10 @@ The server listens on:
 You can override the defaults before running `rke2-init-server.sh`:
 
 ```bash
-INSTALL_RKE2_CHANNEL=latest RKE2_CNI=cilium ./rke2-init-server.sh
+INSTALL_RKE2_CHANNEL=stable RKE2_CNI=cilium ./rke2-init-server.sh
 ```
+
+If you run the script outside the normal Terraform-generated bootstrap flow and `rke2.env` is not present, you must provide both `INSTALL_RKE2_CHANNEL` and `RKE2_CNI` yourself.
 
 You can also add TLS SANs if you want the server certificate to include a fixed IP or DNS name:
 
@@ -112,6 +114,8 @@ RKE2_TOKEN=K10d1d0... \
 ```
 
 The agent script installs the RKE2 agent service, writes `/etc/rancher/rke2/config.yaml`, and starts `rke2-agent`.
+
+If `rke2.env` is not present, provide `INSTALL_RKE2_CHANNEL` explicitly before running the join script.
 
 ## Access kubectl on the server node
 
@@ -213,7 +217,7 @@ curl -sfL https://get.rke2.io | sudo INSTALL_RKE2_CHANNEL=stable INSTALL_RKE2_TY
 sudo systemctl restart rke2-agent
 ```
 
-If you want a newer stream for lab testing, use `INSTALL_RKE2_CHANNEL=latest` or a specific version with `INSTALL_RKE2_VERSION=...`.
+If you want a newer stream for lab testing, use `INSTALL_RKE2_CHANNEL=stable`, `INSTALL_RKE2_CHANNEL=latest`, or a specific version with `INSTALL_RKE2_VERSION=...`.
 
 ### etcd snapshots on the single server
 

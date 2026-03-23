@@ -7,12 +7,22 @@ if [[ -f "${SCRIPT_DIR}/rke2.env" ]]; then
   source "${SCRIPT_DIR}/rke2.env"
 fi
 
-INSTALL_RKE2_CHANNEL="${INSTALL_RKE2_CHANNEL:-stable}"
-RKE2_CNI="${RKE2_CNI:-canal}"
+INSTALL_RKE2_CHANNEL="${INSTALL_RKE2_CHANNEL:-}"
+RKE2_CNI="${RKE2_CNI:-}"
 WRITE_KUBECONFIG_MODE="${WRITE_KUBECONFIG_MODE:-0644}"
 TLS_SAN="${TLS_SAN:-}"
 NODE_IP="${NODE_IP:-}"
 ADVERTISE_ADDRESS="${ADVERTISE_ADDRESS:-}"
+
+if [[ -z "${INSTALL_RKE2_CHANNEL}" ]]; then
+  echo "ERROR: INSTALL_RKE2_CHANNEL must be set, typically via the Terraform-generated rke2.env file" >&2
+  exit 1
+fi
+
+if [[ -z "${RKE2_CNI}" ]]; then
+  echo "ERROR: RKE2_CNI must be set, typically via the Terraform-generated rke2.env file" >&2
+  exit 1
+fi
 
 tmp_config="$(mktemp)"
 trap 'rm -f "${tmp_config}"' EXIT

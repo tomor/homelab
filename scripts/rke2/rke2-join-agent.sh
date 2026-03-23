@@ -7,10 +7,15 @@ if [[ -f "${SCRIPT_DIR}/rke2.env" ]]; then
   source "${SCRIPT_DIR}/rke2.env"
 fi
 
-INSTALL_RKE2_CHANNEL="${INSTALL_RKE2_CHANNEL:-stable}"
+INSTALL_RKE2_CHANNEL="${INSTALL_RKE2_CHANNEL:-}"
 SERVER_URL="${SERVER_URL:-}"
 RKE2_TOKEN="${RKE2_TOKEN:-}"
 NODE_IP="${NODE_IP:-}"
+
+if [[ -z "${INSTALL_RKE2_CHANNEL}" ]]; then
+  echo "ERROR: INSTALL_RKE2_CHANNEL must be set, typically via the Terraform-generated rke2.env file" >&2
+  exit 1
+fi
 
 if [[ -z "${SERVER_URL}" ]]; then
   echo "ERROR: SERVER_URL must be set, for example https://192.168.2.30:9345" >&2

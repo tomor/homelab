@@ -1,4 +1,4 @@
-rke2_channel = "stable"
+rke2_channel = "v1.31"
 rke2_cni     = "canal"
 
 nodes = {
