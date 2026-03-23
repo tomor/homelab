@@ -13,6 +13,13 @@ nodes = {
     ubuntu_image = "24.04"
     role         = "control-plane"
   }
+  "kubeadm-cp-3" = {
+    cpus         = 2
+    memory       = "4G"
+    disk         = "20G"
+    ubuntu_image = "24.04"
+    role         = "control-plane"
+  }
   "kubeadm-worker-1" = {
     cpus         = 2
     memory       = "4G"
