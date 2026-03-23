@@ -1,0 +1,19 @@
+#cloud-config
+
+packages:
+  - curl
+  - apt-transport-https
+  - ca-certificates
+  - gnupg
+
+package_update: true
+package_upgrade: false
+
+write_files:
+  - path: /etc/motd
+    permissions: "0644"
+    content: |
+      rke2 test node
+
+runcmd:
+  - systemctl enable --now ssh

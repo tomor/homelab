@@ -2,7 +2,6 @@
 **/.terraform/
 *.tfstate
 *.tfstate.backup
-terraform/images/
 
 # Cloud-init output (generated files)
 # Uncomment if you add generated cloud-init files

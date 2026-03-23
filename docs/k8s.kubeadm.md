@@ -1,6 +1,6 @@
 # Installing k8s manually via kubeadm
 
-Note: The helper scripts are copied to each VirtualBox VM automatically by Terraform over SSH and end up in `/home/vagrant/`.
+Note: There are shell scripts now which are copied to the VM automatically which are doing exactly this:
 
 ## Prepare the host
 
