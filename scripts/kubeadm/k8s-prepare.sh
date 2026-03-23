@@ -58,5 +58,5 @@ sudo apt-mark hold kubelet kubeadm kubectl
 
 echo ""
 echo "✓ Node preparation complete."
-echo "  Control-plane: run k8s-init-controlplane.sh"
-echo "  Workers:       run the 'kubeadm join ...' command from the control-plane output"
+echo "  First control-plane node only: run k8s-init-controlplane.sh"
+echo "  Additional control-plane and worker nodes: run the appropriate 'kubeadm join ...' command from the running cluster"

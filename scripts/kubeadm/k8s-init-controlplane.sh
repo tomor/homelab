@@ -17,9 +17,19 @@ echo "==> Installing Calico CNI"
 kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/master/manifests/calico.yaml
 
 echo ""
-echo "✓ Control plane is up. Run the following on each worker node (after k8s-prepare.sh):"
+echo "✓ First control-plane node is up."
+echo "  This script is only for the first control-plane node in the cluster."
+echo ""
+echo "  Worker nodes (after k8s-prepare.sh):"
 echo ""
 kubeadm token create --print-join-command | sed 's/^/  sudo /'
+
+echo ""
+echo "  Additional control-plane nodes (after k8s-prepare.sh):"
+echo "    1) On this node, run: sudo kubeadm init phase upload-certs --upload-certs"
+echo "    2) On this node, run: sudo kubeadm token create --print-join-command"
+echo "    3) On the new control-plane node, run the join command with:"
+echo "       --control-plane --certificate-key <key>"
 
 echo ""
 echo "========================================"

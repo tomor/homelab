@@ -80,9 +80,9 @@ sudo apt-get install -y kubelet kubeadm kubectl
 sudo apt-mark hold kubelet kubeadm kubectl
 ```
 
-## Initialize the control plane
+## Initialize the first control-plane node
 
-Run this on the control-plane node only:
+Run this once on the first control-plane node only:
 
 ```bash
 sudo kubeadm init --pod-network-cidr=192.168.0.0/16
@@ -98,11 +98,15 @@ sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 ```
 
-After kubeadm init, it will also print a kubeadm join ... command for worker nodes. Keep that command.
+After `kubeadm init`, kubeadm also prints a `kubeadm join ...` command for worker nodes. Keep that command if you plan to join workers right away.
 
-mine:
+Example:
+```bash
 kubeadm join 192.168.2.2:6443 --token ivme4y.sap5k3hzhqnusd9j \
  --discovery-token-ca-cert-hash sha256:435a437746ac81b071ab631912a278c13e61e154b67fe6a861ba0b758ec6303c
+```
+
+Do not run `kubeadm init` or `k8s-init-controlplane.sh` on a second control-plane node. Additional control-plane nodes must join the existing cluster.
 
 # Install a CNI plugin
 
@@ -133,6 +137,8 @@ sudo kubeadm join <CONTROL_PLANE_IP>:6443 --token <TOKEN> \
   --discovery-token-ca-cert-hash sha256:<HASH>
 ```
 
+You can reuse the same worker join command for multiple nodes as long as the token is still valid.
+
 ## Test running workloads
 
 kubectl run -it busybox --image=busybox --restart=Never -- echo "hoj"
@@ -140,21 +146,44 @@ kubectl run -it busybox --image=busybox --restart=Never -- echo "hoj"
 kubectl run nginx --image=nginx
 
 
-## How to generate join command on a running worker node
+## Generate a fresh worker join command from the running cluster
+
+Run this on an existing control-plane node:
+
 ```bash
 sudo kubeadm token create --print-join-command
 ```
 
-## How to generate join for new control plane node
-first get a certificate key:
+## Join an additional control-plane node
+
+1. On the new control-plane node, run `k8s-prepare.sh` first.
+2. On an existing control-plane node, upload the control-plane certificates and note the certificate key:
+
 ```bash
 sudo kubeadm init phase upload-certs --upload-certs
 ```
 
-Then create/print the join command and add:
+3. On an existing control-plane node, create a fresh join command:
+
+```bash
+sudo kubeadm token create --print-join-command
+```
+
+4. On the new control-plane node, run that join command and add:
+
 ```bash
 --control-plane --certificate-key <key>
 ```
+
+Example:
+
+```bash
+sudo kubeadm join <CONTROL_PLANE_IP>:6443 --token <TOKEN> \
+  --discovery-token-ca-cert-hash sha256:<HASH> \
+  --control-plane --certificate-key <KEY>
+```
+
+Do not run `k8s-init-controlplane.sh` on additional control-plane nodes. That script is only for creating the cluster on the first control-plane node.
 
 Useful check:
 ```bash
