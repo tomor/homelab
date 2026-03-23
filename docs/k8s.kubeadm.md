@@ -82,20 +82,12 @@ sudo apt-mark hold kubelet kubeadm kubectl
 
 ## Initialize the first control-plane node
 
-Run this once on the first control-plane node only:
-
-```bash
-sudo kubeadm init --pod-network-cidr=192.168.0.0/16
-```
-
-(That CIDR is commonly used with Calico. The exact --pod-network-cidr depends on the CNI plugin you choose. kubeadm installation and cluster creation are separate steps in the official docs.)
-
-If you want to add more control-plane nodes later, initialize the cluster with a stable `controlPlaneEndpoint` from the start.
+Run this once on the first control-plane node only, and always provide a stable `CONTROL_PLANE_ENDPOINT`.
 
 With the helper script in this repo:
 
 ```bash
-CONTROL_PLANE_ENDPOINT=k8s-api.example.lab:6443 ./k8s-init-cluster.sh
+CONTROL_PLANE_ENDPOINT=192.168.2.2:6443 ./k8s-init-cluster.sh
 ```
 
 With raw `kubeadm init`:
@@ -103,10 +95,12 @@ With raw `kubeadm init`:
 ```bash
 sudo kubeadm init \
   --pod-network-cidr=192.168.0.0/16 \
-  --control-plane-endpoint k8s-api.example.lab:6443
+  --control-plane-endpoint 192.168.2.2:6443
 ```
 
-A stable endpoint is an address that all nodes use for the Kubernetes API server and that will stay valid as you add more control-plane nodes. In a small homelab, that can be a manually chosen DNS name or fixed IP and port. For better HA later, that endpoint should usually point to a virtual IP or load balancer.
+(That CIDR is commonly used with Calico. The exact `--pod-network-cidr` depends on the CNI plugin you choose. kubeadm installation and cluster creation are separate steps in the official docs.)
+
+A stable endpoint is the address all nodes use for the Kubernetes API server. In this homelab, a fixed first control-plane node IP and port such as `192.168.2.2:6443` is acceptable if you do not have a load balancer yet. For better HA later, that endpoint should usually be a DNS name, virtual IP, or load balancer address.
 
 Then configure kubectl for your normal user:
 
@@ -124,7 +118,7 @@ kubeadm join 192.168.2.2:6443 --token ivme4y.sap5k3hzhqnusd9j \
  --discovery-token-ca-cert-hash sha256:435a437746ac81b071ab631912a278c13e61e154b67fe6a861ba0b758ec6303c
 ```
 
-Do not run `kubeadm init` or `k8s-init-cluster.sh` on a second control-plane node. Additional control-plane nodes must join the existing cluster, and that only works if the cluster was initialized with a stable `controlPlaneEndpoint`.
+Do not run `kubeadm init` or `k8s-init-cluster.sh` on a second control-plane node. Additional control-plane nodes must join the existing cluster, and this repo now expects the first control-plane bootstrap to always use a stable `controlPlaneEndpoint`.
 
 # Install a CNI plugin
 
