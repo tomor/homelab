@@ -48,6 +48,19 @@ sudo kubeadm join 192.168.2.22:6443 --token axxcj0.mdp8vpgfyzzk23u1 --discovery-
 
 - If two Multipass VMs come up with the same IP and `multipass shell` fails with `ssh connection failed: 'Connection refused'`, delete and recreate them. The Terraform `make apply` wrapper now runs with `-parallelism=1` to avoid this duplicate-DHCP race on macOS.
 
+## VM lifecycle
+
+From `terraform/`, you can start or stop the full VM group for one environment:
+
+```bash
+make start E=rke2
+make stop E=rke2
+```
+
+- `E` selects the Terraform environment, for example `kubeadm` or `rke2`.
+- The Make targets resolve VM membership from the environment's Terraform output `vm_names`, so the environment must already exist (`make apply E=...`).
+- This is useful when a Multipass VM needs a clean restart without recreating the whole environment.
+
 ## kubeadm notes
 
 - For multi-control-plane kubeadm setup, the cluster must be created with a stable `controlPlaneEndpoint`.
