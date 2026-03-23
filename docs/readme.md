@@ -19,8 +19,10 @@ sudo kubeadm join 192.168.2.22:6443 --token axxcj0.mdp8vpgfyzzk23u1 --discovery-
 
 ## Notes
 
-- using "multipass" for virtualisation
+- Using "multipass" for virtualisation
 - I've tested VirtualBox, because of issues with multipass, but I wasn't even able to start a working VM
+- The problem with VMs was not multipass. It was when I initialized the cluster the VMs got somehow overloaded and crashing and then ssh to VMs was not possible. After stopping and starting the VMs I was able to recover the k8s cluster.
+
 
 ## Progress tracking
 
