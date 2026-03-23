@@ -276,6 +276,18 @@ Useful check:
 sudo kubeadm token list
 ```
 
+
+## Cluster upgrade
+
+If you are on 1.33.x and want 1.34.z:
+	•	upgrade kubeadm on first control plane
+	•	kubeadm upgrade apply v1.34.z
+	•	upgrade kubelet/kubectl there
+	•	repeat for remaining control planes
+	•	drain and upgrade workers one by one with kubeadm upgrade node
+	•	uncordon each worker after verification
+
+
 ## Example deployments
 
 This repo includes a couple of simple reusable manifests under `scripts/kubeadm/examples/`:
