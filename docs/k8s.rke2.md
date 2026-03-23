@@ -323,6 +323,8 @@ Default snapshot storage:
 
 ### Restore a single-server snapshot
 
+Docs for HA setup: https://docs.rke2.io/datastore/backup_restore?etcdsnap=Multiple+Servers
+
 This is destructive for the current cluster state. Stop and verify what you are restoring before you run it.
 
 ```bash
@@ -334,6 +336,19 @@ sudo systemctl start rke2-server
 ```
 
 After restore, agent nodes can reconnect normally.
+
+#### etcd restore issue:
+In my case the workloads stopped responding (nginx via node port not reachable), there was a problem with pod networking.
+The readiness probes were failing on agent nodes.
+I've restart the rke2-agent which didn't fix the issue.
+Then restarted canal (CNI) which fixed the issue.
+```
+sudo systemctl restart rke2-agent
+```
+```
+kubectl -n kube-system rollout restart ds/rke2-canal
+kubectl -n kube-system rollout status ds/rke2-canal
+```
 
 ## Troubleshooting
 
@@ -389,3 +404,11 @@ These are destructive for that node's RKE2 state.
 - RKE2 defaults to a packaged CNI. This repo keeps the default as `canal` unless you override it.
 - The Kubernetes API is still on `6443`, but new nodes join through the RKE2 registration port `9345`.
 - This repo now supports an in-place lab scale-out to multiple RKE2 servers and agents by provisioning the extra VMs in Terraform and joining them with the helper scripts.
+
+
+## Good to know
+
+### Stopping rke2 supervisor process
+`systemctl stop rke2-server` stops the RKE2 supervisor process, kubelet, and containerd, but the pods that were already running stay running, including `kube-proxy` and the control-plane static pods.
+
+
