@@ -20,25 +20,26 @@ sudo kubeadm join 192.168.2.22:6443 --token axxcj0.mdp8vpgfyzzk23u1 --discovery-
 ## Notes
 
 - Using "multipass" for virtualisation.
-- I've tested VirtualBox, because of issues with multipass, but I wasn't even able to start a working VM.
+- I've tested VirtualBox, because of issues I had, but returned to multipass.
 - I came back to multipass and found out the issue was not multipass, but Calico intalling wrong route on the VM which made the VM appear "dead" - it was unreachable. VM stop/start recovered the issue because the route was not permanent.
   ```
   192.168.2.1 via 192.168.2.25 dev tunl0 proto bird onlink
   ``` 
-- I'm testing Flannel now.
+- I've switched to Flannel which works fine (kubeadm installed k8s)
 
 
 ## Progress tracking
 
-[x] Basic terrraform setups for 1 local VM in multipass
+[x] basic terrraform setups for 1 local VM in multipass
 [x] install kubernetes manually to one host
-[x] Test VirtualBox
+[x] test VirtualBox 
 [x] test joining multiple worker nodes
 [x] test joining master nodes
 [x] test k8s upgrade, put some deployments there to see how they do
 [x] host os upgrade with restart
-[] install RKE2 cluster
+[x] install RKE2 cluster
 [] etcd backup, restore
+[] rke2 upgrade
 
 
 ## Multipass troubleshooting
