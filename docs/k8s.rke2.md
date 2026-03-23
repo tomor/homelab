@@ -89,6 +89,13 @@ TLS_SAN="192.168.2.30,rke2-api.lab" ./rke2-init-server.sh
 
 For this first rollout, a direct first-server IP is acceptable. Multi-server HA can come later.
 
+## Taints
+
+RKE2 server nodes are not tainted by default. Taint them manually:
+```bash
+kubectl taint nodes <server-node-name> node-role.kubernetes.io/control-plane=true:NoSchedule
+```
+
 ## Join an agent node
 
 On the server node, read the join token if you need it again:

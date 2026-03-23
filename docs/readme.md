@@ -39,6 +39,7 @@ sudo kubeadm join 192.168.2.22:6443 --token axxcj0.mdp8vpgfyzzk23u1 --discovery-
 [x] host os upgrade with restart
 [x] install RKE2 cluster
 [] load balancer / ingress
+[] API gateway
 [] etcd backup, restore
 [] rke2 upgrade
 
