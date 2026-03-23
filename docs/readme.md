@@ -19,14 +19,15 @@ sudo kubeadm join 192.168.2.22:6443 --token axxcj0.mdp8vpgfyzzk23u1 --discovery-
 
 ## Notes
 
-- using "multipass" for virtualisation (AI recommended)
+- using "multipass" for virtualisation
+- I've tested VirtualBox, because of issues with multipass, but I wasn't even able to start a working VM
 
 ## Progress tracking
 
 [x] Basic terrraform setups for 1 local VM in multipass
 [x] install kubernetes manually to one host
-[] install kubernetes manually to multiple hosts (use join..)
-[x] test joining multiple worker nodes
+[x] Test VirtualBox
+[] test joining multiple worker nodes
 [] test joining master nodes
 [] test k8s upgrade, put some deployments there to see how they do
 
@@ -49,3 +50,11 @@ sudo ssh -i '/var/root/Library/Application Support/multipassd/ssh-keys/id_rsa' u
 - For multi-control-plane kubeadm setup, the cluster must be created with a stable `controlPlaneEndpoint`.
 - Recovery steps, including commands to reset a failed joining node or rebuild the cluster, are documented in `docs/k8s.kubeadm.md`.
 - Kubeadm VM bootstrap assets live under `scripts/kubeadm/`, including `.bash_aliases`, which is copied to `/home/ubuntu/.bash_aliases` by cloud-init.
+
+## Terraforms notes
+
+### Recreate one node
+
+```bash
+terraform apply -replace='module.cluster.multipass_instance.node["kubeadm-cp-1"]'
+```
