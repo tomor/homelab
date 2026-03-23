@@ -1,4 +1,4 @@
-#cloud-config
+#cloud-init configuration for Kubernetes nodes provisioned with Terraform and Multipass
 
 # Install packages needed as prerequisites for kubeadm / container runtime
 packages:
