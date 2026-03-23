@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# k8s-init-controlplane.sh — Initialize the Kubernetes control plane (run ONCE on control-plane node)
+# k8s-init-controlplane.sh — Initialize the first Kubernetes control plane (run ONCE on the first control-plane node)
 # Prerequisite: k8s-prepare.sh must have been run on this node first.
 set -euxo pipefail
 
