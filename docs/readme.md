@@ -38,3 +38,4 @@ sudo ssh -i '/var/root/Library/Application Support/multipassd/ssh-keys/id_rsa' u
 
 - For multi-control-plane kubeadm setup, the cluster must be created with a stable `controlPlaneEndpoint`.
 - Recovery steps, including commands to reset a failed joining node or rebuild the cluster, are documented in `docs/k8s.kubeadm.md`.
+- Kubeadm VM bootstrap assets live under `scripts/kubeadm/`, including `.bash_aliases`, which is copied to `/home/ubuntu/.bash_aliases` by cloud-init.
