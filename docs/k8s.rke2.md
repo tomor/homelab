@@ -192,6 +192,7 @@ Then test the existing example workloads from this repo:
 kubectl apply -f workloads/00-namespace.yaml
 kubectl apply -f workloads/busybox.yaml
 kubectl apply -f workloads/nginx.yaml
+kubectl apply -f workloads/nginx-nodeport.yaml
 kubectl get all -n demo
 ```
 
@@ -200,6 +201,13 @@ Quick connectivity checks:
 ```bash
 kubectl exec -it -n demo busybox-demo -- nslookup nginx-demo
 kubectl exec -it -n demo busybox-demo -- wget -qO- http://nginx-demo
+```
+
+To reach the NodePort example directly from your workstation:
+
+```bash
+kubectl get nodes -o wide
+curl http://<node-ip>:30080
 ```
 
 ## Useful day-2 operations

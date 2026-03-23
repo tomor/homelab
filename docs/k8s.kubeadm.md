@@ -467,7 +467,8 @@ This repo includes a couple of simple reusable manifests under `workloads/`:
 
 - `00-namespace.yaml` creates a `demo` namespace for the examples
 - `busybox.yaml` creates a long-running BusyBox pod for troubleshooting
-- `nginx.yaml` creates an NGINX `Deployment` and `Service`
+- `nginx.yaml` creates an NGINX `Deployment` and `ClusterIP` `Service`
+- `nginx-nodeport.yaml` creates an NGINX `Deployment` and `NodePort` `Service`
 
 Apply them from the repo root:
 
@@ -475,6 +476,7 @@ Apply them from the repo root:
 kubectl apply -f workloads/00-namespace.yaml
 kubectl apply -f workloads/busybox.yaml
 kubectl apply -f workloads/nginx.yaml
+kubectl apply -f workloads/nginx-nodeport.yaml
 ```
 
 Check that the workloads are up:
@@ -497,6 +499,13 @@ kubectl port-forward -n demo svc/nginx-demo 8080:80
 curl http://127.0.0.1:8080
 ```
 
+Use the NodePort service to reach NGINX directly through a node IP:
+
+```bash
+kubectl get nodes -o wide
+curl http://<node-ip>:30080
+```
+
 If you only want a one-off shell in BusyBox instead of the reusable manifest:
 
 ```bash
@@ -514,4 +523,3 @@ kubectl delete namespace demo
 kubectl run -it busybox --image=busybox --restart=Never -- echo "hoj"
 
 kubectl run nginx --image=nginx
-
