@@ -53,7 +53,7 @@ write_files:
       backend ${cluster_name}_http_backend
         mode http
         balance roundrobin
-        option httpchk GET /
+        option tcp-check
 %{ for backend in http_backends ~}
         server ${backend.name} ${backend.address}:80 check
 %{ endfor ~}
