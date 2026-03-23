@@ -33,8 +33,8 @@ sudo kubeadm join 192.168.2.22:6443 --token axxcj0.mdp8vpgfyzzk23u1 --discovery-
 [x] Basic terrraform setups for 1 local VM in multipass
 [x] install kubernetes manually to one host
 [x] Test VirtualBox
-[] test joining multiple worker nodes
-[] test joining master nodes
+[x] test joining multiple worker nodes
+[x] test joining master nodes
 [] test k8s upgrade, put some deployments there to see how they do
 
 ## Multipass troubleshooting
