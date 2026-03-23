@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: busybox-demo
+  namespace: demo
+  labels:
+    app: busybox-demo
+spec:
+  containers:
+    - name: busybox
+      image: busybox:1.36
+      command:
+        - sh
+        - -c
+        - sleep infinity

@@ -165,11 +165,6 @@ sudo kubeadm join <CONTROL_PLANE_IP>:6443 --token <TOKEN> \
 
 You can reuse the same worker join command for multiple nodes as long as the token is still valid.
 
-## Test running workloads
-
-kubectl run -it busybox --image=busybox --restart=Never -- echo "hoj"
-
-kubectl run nginx --image=nginx
 
 
 ## Generate a fresh worker join command from the running cluster
@@ -280,3 +275,58 @@ Useful check:
 ```bash
 sudo kubeadm token list
 ```
+
+## Example deployments
+
+This repo includes a couple of simple reusable manifests under `scripts/kubeadm/examples/`:
+
+- `00-namespace.yaml` creates a `demo` namespace for the examples
+- `busybox.yaml` creates a long-running BusyBox pod for troubleshooting
+- `nginx.yaml` creates an NGINX `Deployment` and `Service`
+
+Apply them from the repo root:
+
+```bash
+kubectl apply -f scripts/kubeadm/examples/00-namespace.yaml
+kubectl apply -f scripts/kubeadm/examples/busybox.yaml
+kubectl apply -f scripts/kubeadm/examples/nginx.yaml
+```
+
+Check that the workloads are up:
+
+```bash
+kubectl get all -n demo
+```
+
+Use BusyBox to test DNS and service-to-service connectivity inside the cluster:
+
+```bash
+kubectl exec -it -n demo busybox-demo -- nslookup nginx-demo
+kubectl exec -it -n demo busybox-demo -- wget -qO- http://nginx-demo
+```
+
+Use port-forwarding to reach NGINX from your workstation:
+
+```bash
+kubectl port-forward -n demo svc/nginx-demo 8080:80
+curl http://127.0.0.1:8080
+```
+
+If you only want a one-off shell in BusyBox instead of the reusable manifest:
+
+```bash
+kubectl run -it --rm debug --image=busybox:1.36 --restart=Never -- sh
+```
+
+Clean up the examples:
+
+```bash
+kubectl delete namespace demo
+```
+
+### Test running workloads
+
+kubectl run -it busybox --image=busybox --restart=Never -- echo "hoj"
+
+kubectl run nginx --image=nginx
+
