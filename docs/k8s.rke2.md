@@ -7,7 +7,6 @@ Note: for execution on the hosts, scripts from `scripts/rke2/` are copied to the
 From the repo root:
 
 ```bash
-cd terraform
 make init E=rke2
 make apply E=rke2
 ```
@@ -20,8 +19,7 @@ The default `terraform/envs/rke2/terraform.tfvars` provisions:
 Check the VM IPs after apply:
 
 ```bash
-cd terraform/envs/rke2
-terraform output ipv4
+terraform -chdir=terraform/envs/rke2 output ipv4
 ```
 
 The Terraform environment now renders a cloud-init file that copies these helpers into `/home/ubuntu/` on each VM:

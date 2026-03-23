@@ -46,11 +46,11 @@ sudo kubeadm join 192.168.2.22:6443 --token axxcj0.mdp8vpgfyzzk23u1 --discovery-
 - If multipass shell fails with `shell failed: ssh connection failed: 'Failed to connect: No route to host'`
 - Try restarting the VM, the issue I had was not caused by multipass, but by calico installing wrong routes. They were not permanent and after VM restart the VM was accessible for a while - till calico broke the routing.
 
-- If two Multipass VMs come up with the same IP and `multipass shell` fails with `ssh connection failed: 'Connection refused'`, delete and recreate them. The Terraform `make apply` wrapper now runs with `-parallelism=1` to avoid this duplicate-DHCP race on macOS.
+- If two Multipass VMs come up with the same IP and `multipass shell` fails with `ssh connection failed: 'Connection refused'`, delete and recreate them. The root `make apply` wrapper now runs with `-parallelism=1` to avoid this duplicate-DHCP race on macOS.
 
 ## VM lifecycle
 
-From `terraform/`, you can start or stop the full VM group for one environment:
+From the repo root, you can start or stop the full VM group for one environment:
 
 ```bash
 make start E=rke2

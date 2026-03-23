@@ -1,7 +1,8 @@
 .PHONY: help init plan apply destroy start stop validate fmt clean
 
 E ?= rke2
-ENV_DIR := envs/$(E)
+TERRAFORM_DIR := terraform
+ENV_DIR := $(TERRAFORM_DIR)/envs/$(E)
 TF_PARALLELISM ?= 1
 
 help: ## Show this help output.
@@ -9,7 +10,6 @@ help: ## Show this help output.
 	@echo "Example: make plan E=rke2"
 	@echo "Example: make apply E=rke2 TF_PARALLELISM=1"
 	@echo "Example: make start E=rke2"
-	@echo "Example: make stop E=rke2"
 	@echo ""
 	@awk 'BEGIN {FS = ":.*## "}; /^[a-zA-Z0-9_-]+:.*## / {printf "  %-9s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
@@ -20,7 +20,7 @@ validate: ## Validate the selected environment.
 	terraform -chdir=$(ENV_DIR) validate
 
 fmt: ## Format Terraform files.
-	terraform fmt -recursive
+	terraform -chdir=$(TERRAFORM_DIR) fmt -recursive
 
 plan: ## Show the execution plan for the selected environment.
 	terraform -chdir=$(ENV_DIR) plan
@@ -32,11 +32,11 @@ destroy: ## Tear down the selected environment.
 	terraform -chdir=$(ENV_DIR) destroy
 
 start: ## Start the Multipass VMs for the selected environment.
-	@VM_NAMES="$$(python3 ../scripts/terraform-vm-names.py "$(ENV_DIR)")"; \
+	@VM_NAMES="$$(python3 scripts/terraform-vm-names.py "$(ENV_DIR)")"; \
 	multipass start $$VM_NAMES
 
 stop: ## Stop the Multipass VMs for the selected environment.
-	@VM_NAMES="$$(python3 ../scripts/terraform-vm-names.py "$(ENV_DIR)")"; \
+	@VM_NAMES="$$(python3 scripts/terraform-vm-names.py "$(ENV_DIR)")"; \
 	multipass stop $$VM_NAMES
 
 clean: ## Remove local Terraform state and cache for the selected environment.
