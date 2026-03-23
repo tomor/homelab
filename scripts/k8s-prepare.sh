@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # k8s-prepare.sh — Prepare a node for Kubernetes (run on ALL nodes before kubeadm init/join)
-set -euo pipefail
+set -euxo pipefail
 
 K8S_VERSION="v1.32"
 

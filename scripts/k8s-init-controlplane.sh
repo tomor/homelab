@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # k8s-init-controlplane.sh — Initialize the Kubernetes control plane (run ONCE on control-plane node)
 # Prerequisite: k8s-prepare.sh must have been run on this node first.
-set -euo pipefail
+set -euxo pipefail
 
 POD_CIDR="192.168.0.0/16"
 
