@@ -11,7 +11,7 @@ Learning terraform, then kubernetest installation, first on my Macbook pro M3
 
 # Progress tracking
 [x] Basic terrraform setups for 1 local VM in multipass
-[] install kubernetes manually to one host
+[x] install kubernetes manually to one host
 [] install kubernetes manually to multiple hosts (use join..)
 
 
@@ -78,9 +78,6 @@ sudo systemctl enable containerd
 
 6) Install kubeadm, kubelet, kubectl
 ```
-sudo apt-get update
-sudo apt-get install -y apt-transport-https ca-certificates curl gpg
-
 sudo mkdir -p /etc/apt/keyrings
 curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.35/deb/Release.key | \
   sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
@@ -106,11 +103,16 @@ Then configure kubectl for your normal user:
 ```
 mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-sudo chown "$(id -u)":"$(id -g)" $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
 ```
 
 
 After kubeadm init, it will also print a kubeadm join ... command for worker nodes. Keep that command.
+
+mine: 
+kubeadm join 192.168.2.2:6443 --token ivme4y.sap5k3hzhqnusd9j \
+	--discovery-token-ca-cert-hash sha256:435a437746ac81b071ab631912a278c13e61e154b67fe6a861ba0b758ec6303c
+
 
 # Install a CNI plugin
 Without a CNI, nodes will stay NotReady.
@@ -123,8 +125,9 @@ Make sure the pod CIDR you used with kubeadm init matches the CNI you install. T
 
 
 ## Remove taint - for 1 node cluster only!
-kubectl taint no
-     des --all node-role.kubernetes.io/control-plane-
+```
+kubectl taint nodes --all node-role.kubernetes.io/control-plane-
+```
 
 ## Join workers
 
