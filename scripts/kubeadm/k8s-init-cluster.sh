@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# k8s-init-controlplane.sh — Initialize the first Kubernetes control plane (run ONCE on the first control-plane node)
+# k8s-init-cluster.sh — Initialize the first Kubernetes control plane (run ONCE on the first control-plane node)
 # Prerequisite: k8s-prepare.sh must have been run on this node first.
 set -euxo pipefail
 
@@ -46,7 +46,7 @@ if [[ -n "${CONTROL_PLANE_ENDPOINT}" ]]; then
   echo "       --control-plane --certificate-key <key>"
 else
   echo "    To support additional control-plane nodes, recreate the cluster with:"
-  echo "      CONTROL_PLANE_ENDPOINT=<stable DNS name or IP:6443> ./k8s-init-controlplane.sh"
+  echo "      CONTROL_PLANE_ENDPOINT=<stable DNS name or IP:6443> ./k8s-init-cluster.sh"
 fi
 
 echo ""

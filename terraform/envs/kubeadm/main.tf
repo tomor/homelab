@@ -22,7 +22,7 @@ resource "local_file" "kubeadm_cloud_init" {
   filename = "${local.cloud_init_dir}/.rendered/kubeadm.yaml"
   content = templatefile("${local.cloud_init_dir}/kubeadm.yaml.tftpl", {
     k8s_prepare_script_b64           = base64encode(file("${local.scripts_dir}/k8s-prepare.sh"))
-    k8s_init_controlplane_script_b64 = base64encode(file("${local.scripts_dir}/k8s-init-controlplane.sh"))
+    k8s_init_cluster_script_b64 = base64encode(file("${local.scripts_dir}/k8s-init-cluster.sh"))
   })
 }
 

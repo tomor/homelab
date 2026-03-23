@@ -22,12 +22,12 @@ write_files:
     encoding: b64
     content: ${k8s_prepare_script_b64}
 
-  - path: /tmp/k8s-init-controlplane.sh
+  - path: /tmp/k8s-init-cluster.sh
     permissions: "0755"
     encoding: b64
-    content: ${k8s_init_controlplane_script_b64}
+    content: ${k8s_init_cluster_script_b64}
 
 runcmd:
   - systemctl enable --now ssh
-  - cp /tmp/k8s-prepare.sh /tmp/k8s-init-controlplane.sh /home/ubuntu/
-  - chown ubuntu:ubuntu /home/ubuntu/k8s-prepare.sh /home/ubuntu/k8s-init-controlplane.sh
+  - cp /tmp/k8s-prepare.sh /tmp/k8s-init-cluster.sh /home/ubuntu/
+  - chown ubuntu:ubuntu /home/ubuntu/k8s-prepare.sh /home/ubuntu/k8s-init-cluster.sh

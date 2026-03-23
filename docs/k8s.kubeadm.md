@@ -95,7 +95,7 @@ If you want to add more control-plane nodes later, initialize the cluster with a
 With the helper script in this repo:
 
 ```bash
-CONTROL_PLANE_ENDPOINT=k8s-api.example.lab:6443 ./k8s-init-controlplane.sh
+CONTROL_PLANE_ENDPOINT=k8s-api.example.lab:6443 ./k8s-init-cluster.sh
 ```
 
 With raw `kubeadm init`:
@@ -124,7 +124,7 @@ kubeadm join 192.168.2.2:6443 --token ivme4y.sap5k3hzhqnusd9j \
  --discovery-token-ca-cert-hash sha256:435a437746ac81b071ab631912a278c13e61e154b67fe6a861ba0b758ec6303c
 ```
 
-Do not run `kubeadm init` or `k8s-init-controlplane.sh` on a second control-plane node. Additional control-plane nodes must join the existing cluster, and that only works if the cluster was initialized with a stable `controlPlaneEndpoint`.
+Do not run `kubeadm init` or `k8s-init-cluster.sh` on a second control-plane node. Additional control-plane nodes must join the existing cluster, and that only works if the cluster was initialized with a stable `controlPlaneEndpoint`.
 
 # Install a CNI plugin
 
@@ -203,7 +203,7 @@ sudo kubeadm join <CONTROL_PLANE_IP>:6443 --token <TOKEN> \
   --control-plane --certificate-key <KEY>
 ```
 
-Do not run `k8s-init-controlplane.sh` on additional control-plane nodes. That script is only for creating the cluster on the first control-plane node.
+Do not run `k8s-init-cluster.sh` on additional control-plane nodes. That script is only for creating the cluster on the first control-plane node.
 
 ## If the cluster was created without `controlPlaneEndpoint`
 
@@ -249,7 +249,7 @@ sudo systemctl restart kubelet
 3. Recreate the cluster from the first control-plane node with a stable endpoint:
 
 ```bash
-CONTROL_PLANE_ENDPOINT=<stable endpoint>:6443 ./k8s-init-controlplane.sh
+CONTROL_PLANE_ENDPOINT=<stable endpoint>:6443 ./k8s-init-cluster.sh
 ```
 
 Or with raw kubeadm:
