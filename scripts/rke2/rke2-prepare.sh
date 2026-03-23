@@ -36,6 +36,9 @@ sudo mkdir -p /etc/rancher/rke2
 
 echo ""
 echo "✓ Host preparation complete."
-echo "  Next step on the first server node: run ./rke2-init-server.sh"
+echo "  Resolve the HAProxy VM IP on your workstation with:"
+echo "    terraform -chdir=terraform/envs/rke2 output -raw load_balancer_ipv4"
+echo "  Next step on the first server node:"
+echo "    RKE2_LB_IP=<rke2-lb-ip> ./rke2-init-server.sh"
 echo "  Next step on additional server nodes: wait for the server token, then run ./rke2-join-server.sh"
 echo "  Next step on agent nodes: wait for the server token, then run ./rke2-join-agent.sh"

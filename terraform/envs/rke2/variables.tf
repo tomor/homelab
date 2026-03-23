@@ -18,3 +18,8 @@ variable "rke2_cni" {
   description = "Default packaged CNI to use for the RKE2 server."
   type        = string
 }
+
+variable "api_hostname" {
+  description = "Stable DNS hostname used for the RKE2 API and registration load balancer."
+  type        = string
+}

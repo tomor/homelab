@@ -12,7 +12,20 @@ RKE2_CNI="${RKE2_CNI:-}"
 SERVER_URL="${SERVER_URL:-}"
 RKE2_TOKEN="${RKE2_TOKEN:-}"
 WRITE_KUBECONFIG_MODE="${WRITE_KUBECONFIG_MODE:-0644}"
-TLS_SAN="${TLS_SAN:-}"
+RKE2_LB_IP="${RKE2_LB_IP:-}"
+RKE2_API_HOSTNAME="${RKE2_API_HOSTNAME:-}"
+if [[ -n "${TLS_SAN:-}" ]]; then
+  TLS_SAN="${TLS_SAN}"
+else
+  san_values=()
+  if [[ -n "${RKE2_LB_IP}" ]]; then
+    san_values+=("${RKE2_LB_IP}")
+  fi
+  if [[ -n "${RKE2_API_HOSTNAME}" ]]; then
+    san_values+=("${RKE2_API_HOSTNAME}")
+  fi
+  TLS_SAN="$(IFS=,; echo "${san_values[*]}")"
+fi
 NODE_IP="${NODE_IP:-}"
 ADVERTISE_ADDRESS="${ADVERTISE_ADDRESS:-}"
 
@@ -33,6 +46,11 @@ fi
 
 if [[ -z "${RKE2_TOKEN}" ]]; then
   echo "ERROR: RKE2_TOKEN must be set from the existing server node token" >&2
+  exit 1
+fi
+
+if [[ -z "${RKE2_LB_IP}" ]]; then
+  echo "ERROR: RKE2_LB_IP must be set to the RKE2 HAProxy VM IP, for example 192.168.2.30" >&2
   exit 1
 fi
 

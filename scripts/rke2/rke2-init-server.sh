@@ -10,7 +10,20 @@ fi
 INSTALL_RKE2_CHANNEL="${INSTALL_RKE2_CHANNEL:-}"
 RKE2_CNI="${RKE2_CNI:-}"
 WRITE_KUBECONFIG_MODE="${WRITE_KUBECONFIG_MODE:-0644}"
-TLS_SAN="${TLS_SAN:-}"
+RKE2_LB_IP="${RKE2_LB_IP:-}"
+RKE2_API_HOSTNAME="${RKE2_API_HOSTNAME:-}"
+if [[ -n "${TLS_SAN:-}" ]]; then
+  TLS_SAN="${TLS_SAN}"
+else
+  san_values=()
+  if [[ -n "${RKE2_LB_IP}" ]]; then
+    san_values+=("${RKE2_LB_IP}")
+  fi
+  if [[ -n "${RKE2_API_HOSTNAME}" ]]; then
+    san_values+=("${RKE2_API_HOSTNAME}")
+  fi
+  TLS_SAN="$(IFS=,; echo "${san_values[*]}")"
+fi
 NODE_IP="${NODE_IP:-}"
 ADVERTISE_ADDRESS="${ADVERTISE_ADDRESS:-}"
 
@@ -21,6 +34,11 @@ fi
 
 if [[ -z "${RKE2_CNI}" ]]; then
   echo "ERROR: RKE2_CNI must be set, typically via the Terraform-generated rke2.env file" >&2
+  exit 1
+fi
+
+if [[ -z "${RKE2_LB_IP}" ]]; then
+  echo "ERROR: RKE2_LB_IP must be set to the RKE2 HAProxy VM IP, for example 192.168.2.30" >&2
   exit 1
 fi
 
@@ -90,19 +108,19 @@ mkdir -p "$HOME/.kube"
 sudo cp /etc/rancher/rke2/rke2.yaml "$HOME/.kube/config"
 sudo chown "$(id -u):$(id -g)" "$HOME/.kube/config"
 
-server_ip="${NODE_IP:-$(hostname -I | awk '{print $1}')}"
+registration_endpoint="${RKE2_LB_IP}"
 node_token="$(sudo cat /var/lib/rancher/rke2/server/node-token)"
 
 echo ""
 echo "✓ First RKE2 server is up."
-echo "  Registration endpoint: https://${server_ip}:9345"
-echo "  Kubernetes API: https://${server_ip}:6443"
+echo "  Registration endpoint: https://${registration_endpoint}:9345"
+echo "  Kubernetes API: https://${registration_endpoint}:6443"
 echo ""
 echo "  Additional server join command:"
-echo "  SERVER_URL=https://${server_ip}:9345 RKE2_TOKEN=${node_token} ./rke2-join-server.sh"
+echo "  SERVER_URL=https://${registration_endpoint}:9345 RKE2_TOKEN=${node_token} ./rke2-join-server.sh"
 echo ""
 echo "  Agent join command:"
-echo "  SERVER_URL=https://${server_ip}:9345 RKE2_TOKEN=${node_token} ./rke2-join-agent.sh"
+echo "  SERVER_URL=https://${registration_endpoint}:9345 RKE2_TOKEN=${node_token} ./rke2-join-agent.sh"
 echo ""
 echo "  Useful checks:"
 echo "  source ~/.bash_aliases"

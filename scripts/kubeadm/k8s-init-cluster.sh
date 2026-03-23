@@ -9,13 +9,24 @@ if [[ -z "${CONTROL_PLANE_ENDPOINT:-}" ]]; then
   exit 1
 fi
 
+APISERVER_CERT_EXTRA_SANS="${APISERVER_CERT_EXTRA_SANS:-${CONTROL_PLANE_ENDPOINT%:*}}"
+
 KUBEADM_INIT_ARGS=(
   --pod-network-cidr="${POD_CIDR}"
   --control-plane-endpoint "${CONTROL_PLANE_ENDPOINT}"
 )
 
+IFS=',' read -r -a apiserver_cert_sans <<< "${APISERVER_CERT_EXTRA_SANS}"
+for san in "${apiserver_cert_sans[@]}"; do
+  trimmed_san="$(echo "${san}" | xargs)"
+  if [[ -n "${trimmed_san}" ]]; then
+    KUBEADM_INIT_ARGS+=(--apiserver-cert-extra-sans "${trimmed_san}")
+  fi
+done
+
 echo "==> Initializing Kubernetes control plane (pod CIDR: ${POD_CIDR})"
 echo "==> Using stable control-plane endpoint: ${CONTROL_PLANE_ENDPOINT}"
+echo "==> Adding API server certificate SAN: ${APISERVER_CERT_EXTRA_SANS}"
 sudo kubeadm init "${KUBEADM_INIT_ARGS[@]}"
 
 echo "==> Configuring kubectl for current user"

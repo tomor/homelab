@@ -84,10 +84,20 @@ sudo apt-mark hold kubelet kubeadm kubectl
 
 Run this once on the first control-plane node only, and always provide a stable `CONTROL_PLANE_ENDPOINT`.
 
+First, read the kubeadm HAProxy VM IP on your workstation:
+
+```bash
+terraform -chdir=terraform/envs/kubeadm output -raw load_balancer_ipv4
+```
+
+Then use that IP inside the cluster VMs. The `.home.arpa` hostname is only for workstation access.
+
 With the helper script in this repo:
 
 ```bash
-CONTROL_PLANE_ENDPOINT=192.168.2.2:6443 ./k8s-init-cluster.sh
+CONTROL_PLANE_ENDPOINT=<kubeadm-lb-ip>:6443 \
+APISERVER_CERT_EXTRA_SANS="<kubeadm-lb-ip>,kubeadm-api.home.arpa" \
+./k8s-init-cluster.sh
 ```
 
 With raw `kubeadm init`:
@@ -96,19 +106,23 @@ for Calico default CIDR:
 ```bash
 sudo kubeadm init \
   --pod-network-cidr=192.168.0.0/16 \
-  --control-plane-endpoint 192.168.2.2:6443
+  --control-plane-endpoint <kubeadm-lb-ip>:6443 \
+  --apiserver-cert-extra-sans <kubeadm-lb-ip> \
+  --apiserver-cert-extra-sans kubeadm-api.home.arpa
 ```
 
 for Flannel default CIDR:
 ```bash
 sudo kubeadm init \
   --pod-network-cidr=10.244.0.0/16 \
-  --control-plane-endpoint 192.168.2.2:6443
+  --control-plane-endpoint <kubeadm-lb-ip>:6443 \
+  --apiserver-cert-extra-sans <kubeadm-lb-ip> \
+  --apiserver-cert-extra-sans kubeadm-api.home.arpa
 ```
 
 The exact `--pod-network-cidr` depends on the CNI plugin you choose. kubeadm installation and cluster creation are separate steps in the official docs.
 
-A stable endpoint is the address all nodes use for the Kubernetes API server. In this homelab, a fixed first control-plane node IP and port such as `192.168.2.2:6443` is acceptable if you do not have a load balancer yet. For better HA later, that endpoint should usually be a DNS name, virtual IP, or load balancer address.
+A stable endpoint is the address all nodes use for the Kubernetes API server. In this homelab, use the kubeadm HAProxy VM IP such as `<kubeadm-lb-ip>:6443` inside the cluster VMs, and map `kubeadm-api.home.arpa` manually in your workstation `/etc/hosts` to the current `load_balancer_ipv4` value from Terraform. If the HAProxy VM is recreated and gets a new Multipass IP, update `/etc/hosts` yourself.
 
 Then configure kubectl for your normal user:
 
@@ -122,7 +136,7 @@ After `kubeadm init`, kubeadm also prints a `kubeadm join ...` command for worke
 
 Example:
 ```bash
-kubeadm join 192.168.2.2:6443 --token ivme4y.sap5k3hzhqnusd9j \
+kubeadm join <kubeadm-lb-ip>:6443 --token ivme4y.sap5k3hzhqnusd9j \
  --discovery-token-ca-cert-hash sha256:435a437746ac81b071ab631912a278c13e61e154b67fe6a861ba0b758ec6303c
 ```
 
@@ -159,7 +173,7 @@ kubectl taint nodes --all node-role.kubernetes.io/control-plane:NoSchedule-
 Run the kubeadm join ... command printed by kubeadm init on each worker node, for example:
 
 ```bash
-sudo kubeadm join <CONTROL_PLANE_IP>:6443 --token <TOKEN> \
+sudo kubeadm join <kubeadm-lb-ip>:6443 --token <TOKEN> \
   --discovery-token-ca-cert-hash sha256:<HASH>
 ```
 
@@ -201,7 +215,7 @@ sudo kubeadm token create --print-join-command
 Example:
 
 ```bash
-sudo kubeadm join <CONTROL_PLANE_IP>:6443 --token <TOKEN> \
+sudo kubeadm join <kubeadm-lb-ip>:6443 --token <TOKEN> \
   --discovery-token-ca-cert-hash sha256:<HASH> \
   --control-plane --certificate-key <KEY>
 ```

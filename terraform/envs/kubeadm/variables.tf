@@ -8,3 +8,8 @@ variable "nodes" {
     role         = optional(string)
   }))
 }
+
+variable "api_hostname" {
+  description = "Stable DNS hostname used for the kubeadm API load balancer."
+  type        = string
+}

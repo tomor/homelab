@@ -1,0 +1,62 @@
+#cloud-config
+
+packages:
+  - curl
+  - apt-transport-https
+  - ca-certificates
+  - gnupg
+  - haproxy
+
+package_update: true
+package_upgrade: false
+
+write_files:
+  - path: /etc/motd
+    permissions: "0644"
+    content: |
+      ${cluster_name} haproxy node
+
+  - path: /etc/haproxy/haproxy.cfg
+    permissions: "0644"
+    content: |
+      global
+        log /dev/log local0
+        log /dev/log local1 notice
+        daemon
+
+      defaults
+        log global
+        mode tcp
+        option tcplog
+        timeout connect 10s
+        timeout client  1m
+        timeout server  1m
+
+      frontend ${cluster_name}_api
+        bind *:6443
+        default_backend ${cluster_name}_api_backend
+
+      backend ${cluster_name}_api_backend
+        balance roundrobin
+        option tcp-check
+%{ for backend in api_backends ~}
+        server ${backend.name} ${backend.address}:6443 check
+%{ endfor ~}
+%{ if registration_backends != null ~}
+
+      frontend ${cluster_name}_registration
+        bind *:9345
+        default_backend ${cluster_name}_registration_backend
+
+      backend ${cluster_name}_registration_backend
+        balance roundrobin
+        option tcp-check
+%{ for backend in registration_backends ~}
+        server ${backend.name} ${backend.address}:9345 check
+%{ endfor ~}
+%{ endif ~}
+
+runcmd:
+  - systemctl enable --now ssh
+  - systemctl enable haproxy
+  - systemctl restart haproxy

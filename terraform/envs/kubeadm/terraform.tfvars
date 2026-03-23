@@ -34,4 +34,11 @@ nodes = {
     ubuntu_image = "24.04"
     role         = "worker"
   }
+  "kubeadm-lb-1" = {
+    cpus         = 1
+    memory       = "1G"
+    disk         = "10G"
+    ubuntu_image = "24.04"
+    role         = "haproxy"
+  }
 }

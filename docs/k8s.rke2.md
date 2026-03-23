@@ -33,6 +33,20 @@ The Terraform environment now renders a cloud-init file that copies these helper
 
 `rke2.env` is generated from Terraform and currently carries the pinned default RKE2 release channel (`v1.31`) plus the CNI choice. The older default is intentional so the lab can exercise RKE2 upgrades. The helper scripts expect these values to come from that generated file during the normal workflow.
 
+The same Terraform environment now also provisions a dedicated HAProxy VM for the RKE2 cluster. After `make apply E=rke2`, read the LB IP from:
+
+```bash
+terraform -chdir=terraform/envs/rke2 output -raw load_balancer_ipv4
+```
+
+Then add a manual `/etc/hosts` entry on your workstation for:
+
+```text
+<load-balancer-ip> rke2-api.home.arpa
+```
+
+Use that LB IP inside the cluster VMs for `SERVER_URL` and `RKE2_LB_IP`. The `.home.arpa` hostname is only for workstation access.
+
 ## Prepare every node
 
 Run this on every server node and every agent node first:
@@ -56,7 +70,7 @@ Unlike the kubeadm flow in this repo, this script does **not** install container
 Log in to the first server node and run:
 
 ```bash
-./rke2-init-server.sh
+RKE2_LB_IP=<rke2-lb-ip> ./rke2-init-server.sh
 ```
 
 By default the script:
@@ -66,6 +80,7 @@ By default the script:
 - enables and starts `rke2-server`
 - copies `/etc/rancher/rke2/rke2.yaml` to `$HOME/.kube/config`
 - prints the node token plus ready-to-use server and agent join commands
+- requires `RKE2_LB_IP` so the cluster always bootstraps against the HAProxy endpoint
 
 The server listens on:
 
@@ -82,13 +97,15 @@ INSTALL_RKE2_CHANNEL=stable RKE2_CNI=cilium ./rke2-init-server.sh
 
 If you run the script outside the normal Terraform-generated bootstrap flow and `rke2.env` is not present, you must provide both `INSTALL_RKE2_CHANNEL` and `RKE2_CNI` yourself.
 
-You can also add TLS SANs if you want the server certificate to include a fixed IP or DNS name:
+`RKE2_LB_IP` is mandatory. By default, the Terraform-generated `rke2.env` sets `RKE2_API_HOSTNAME=rke2-api.home.arpa` for workstation-facing access. When you set `RKE2_LB_IP=<rke2-lb-ip>` before running the helper script, it adds both the LB IP and the hostname as TLS SANs and prints join commands that use the HAProxy VM IP.
+
+You can also override the TLS SANs manually if you want the server certificate to include a different IP or DNS name:
 
 ```bash
-TLS_SAN="192.168.2.30,rke2-api.lab" ./rke2-init-server.sh
+RKE2_LB_IP=<rke2-lb-ip> TLS_SAN="<rke2-lb-ip>,rke2-api.home.arpa" ./rke2-init-server.sh
 ```
 
-For an in-place scale-out, using the current first-server IP as the registration endpoint is acceptable. If you later introduce a stable DNS name or VIP, add it through `TLS_SAN` so the server certificate matches that endpoint.
+For HA in this repo, use the HAProxy VM IP from day 1 inside the cluster VMs. The optional hostname `rke2-api.home.arpa` is for workstation access and should resolve to the same HAProxy VM.
 
 ## Join additional server nodes
 
@@ -101,7 +118,8 @@ sudo cat /var/lib/rancher/rke2/server/node-token
 On each additional server node, run:
 
 ```bash
-SERVER_URL=https://<existing-server-ip-or-stable-endpoint>:9345 \
+SERVER_URL=https://<rke2-lb-ip>:9345 \
+RKE2_LB_IP=<rke2-lb-ip> \
 RKE2_TOKEN=<token> \
 ./rke2-join-server.sh
 ```
@@ -109,12 +127,13 @@ RKE2_TOKEN=<token> \
 Example:
 
 ```bash
-SERVER_URL=https://192.168.2.30:9345 \
+SERVER_URL=https://<rke2-lb-ip>:9345 \
+RKE2_LB_IP=<rke2-lb-ip> \
 RKE2_TOKEN=K10d1d0... \
 ./rke2-join-server.sh
 ```
 
-The server join script installs `rke2-server`, writes `/etc/rancher/rke2/config.yaml` with the registration endpoint and token, and starts the server service so the node joins the existing control plane.
+The server join script installs `rke2-server`, writes `/etc/rancher/rke2/config.yaml` with the registration endpoint and token, adds default TLS SANs for the LB IP plus `rke2-api.home.arpa`, and starts the server service so the node joins the existing control plane.
 
 If `rke2.env` is not present, provide both `INSTALL_RKE2_CHANNEL` and `RKE2_CNI` explicitly before running the join script.
 
@@ -136,7 +155,7 @@ sudo cat /var/lib/rancher/rke2/server/node-token
 On the agent node, run:
 
 ```bash
-SERVER_URL=https://<server-ip>:9345 \
+SERVER_URL=https://<rke2-lb-ip>:9345 \
 RKE2_TOKEN=<token> \
 ./rke2-join-agent.sh
 ```
@@ -144,7 +163,7 @@ RKE2_TOKEN=<token> \
 Example:
 
 ```bash
-SERVER_URL=https://192.168.2.30:9345 \
+SERVER_URL=https://<rke2-lb-ip>:9345 \
 RKE2_TOKEN=K10d1d0... \
 ./rke2-join-agent.sh
 ```
@@ -422,5 +441,3 @@ These are destructive for that node's RKE2 state.
 
 ### Stopping rke2 supervisor process
 `systemctl stop rke2-server` stops the RKE2 supervisor process, kubelet, and containerd, but the pods that were already running stay running, including `kube-proxy` and the control-plane static pods.
-
-
