@@ -3,29 +3,31 @@
 E ?= kubeadm
 ENV_DIR := envs/$(E)
 
-help:
+help: ## Show this help output.
 	@echo "Usage: make <target> E=<kubeadm|rke2>"
 	@echo "Example: make plan E=rke2"
+	@echo ""
+	@awk 'BEGIN {FS = ":.*## "}; /^[a-zA-Z0-9_-]+:.*## / {printf "  %-9s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
-init:
+init: ## Initialize the selected environment.
 	terraform -chdir=$(ENV_DIR) init
 
-validate:
+validate: ## Validate the selected environment.
 	terraform -chdir=$(ENV_DIR) validate
 
-fmt:
+fmt: ## Format Terraform files.
 	terraform fmt -recursive
 
-plan:
+plan: ## Show the execution plan for the selected environment.
 	terraform -chdir=$(ENV_DIR) plan
 
-apply:
+apply: ## Apply changes to the selected environment.
 	terraform -chdir=$(ENV_DIR) apply
 
-destroy:
+destroy: ## Tear down the selected environment.
 	terraform -chdir=$(ENV_DIR) destroy
 
-clean:
+clean: ## Remove local Terraform state and cache for the selected environment.
 	rm -rf $(ENV_DIR)/.terraform \
 		$(ENV_DIR)/.terraform.lock.hcl \
 		$(ENV_DIR)/terraform.tfstate \
