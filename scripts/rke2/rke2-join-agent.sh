@@ -44,6 +44,7 @@ sudo mkdir -p /etc/rancher/rke2
 sudo install -m 0600 "${tmp_config}" /etc/rancher/rke2/config.yaml
 
 echo "==> Installing RKE2 agent from channel ${INSTALL_RKE2_CHANNEL}"
+# This is ok for lab environment, but not for production.
 curl -sfL https://get.rke2.io | sudo INSTALL_RKE2_CHANNEL="${INSTALL_RKE2_CHANNEL}" INSTALL_RKE2_TYPE="agent" sh -
 
 echo "==> Enabling and starting rke2-agent"
