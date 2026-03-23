@@ -15,5 +15,15 @@ write_files:
     content: |
       kubeadm test node
 
+  - path: /home/ubuntu/k8s-prepare.sh
+    permissions: "0755"
+    encoding: b64
+    content: ${k8s_prepare_script_b64}
+
+  - path: /home/ubuntu/k8s-init-controlplane.sh
+    permissions: "0755"
+    encoding: b64
+    content: ${k8s_init_controlplane_script_b64}
+
 runcmd:
   - systemctl enable --now ssh
