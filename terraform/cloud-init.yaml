@@ -1,0 +1,15 @@
+#cloud-config
+
+# Install packages needed as prerequisites for kubeadm / container runtime
+packages:
+  - curl
+  - apt-transport-https
+  - ca-certificates
+  - gnupg
+
+package_update: true
+package_upgrade: false
+
+runcmd:
+  # Ensure SSH is running (Multipass enables it by default, but be explicit)
+  - systemctl enable --now ssh

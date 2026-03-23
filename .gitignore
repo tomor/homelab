@@ -1,0 +1,12 @@
+# Terraform state and secrets
+**/.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfvars
+
+# Cloud-init output (generated files)
+# Uncomment if you add generated cloud-init files
+# terraform/cloud-init-generated.yaml
+
+# OS
+.DS_Store

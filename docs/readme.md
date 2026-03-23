@@ -8,3 +8,9 @@ My laptop has 36GB of ram.
 What would you recommend? UTM or something else?
 After we pick the virtualisation platform I wan to setup the teffaform directory for provisioning one virtual machine (ubuntu) where I can later install k8s with kubeadm.
 
+# Decisions
+- using "multipass" for virtualisation
+
+
+# Progress tracking
+[x] Basic terrraform setups for 1 local VM in multipass
