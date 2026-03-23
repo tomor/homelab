@@ -1,5 +1,8 @@
 # Installing k8s manually via kubeadm
 
+Note: There are shell scripts now which are copied to the VM automatically which are doing exactly this:
+
+
 ## Prepare the host
 
 1) Disable swap
