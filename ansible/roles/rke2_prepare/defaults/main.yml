@@ -1,0 +1,3 @@
+---
+rke2_prepare_script_path: /home/ubuntu/rke2-prepare.sh
+rke2_prepare_marker: "{{ k8s_common_marker_dir }}/rke2_prepare.done"

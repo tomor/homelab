@@ -1,0 +1,13 @@
+---
+- name: Wait for the host to be reachable
+  ansible.builtin.wait_for_connection:
+    timeout: 60
+
+- name: Ensure the common Ansible marker directory exists
+  become: true
+  ansible.builtin.file:
+    path: "{{ k8s_common_marker_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"

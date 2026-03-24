@@ -1,0 +1,13 @@
+---
+- name: Check whether the bootstrap server already has an RKE2 token
+  ansible.builtin.stat:
+    path: "{{ rke2_server_token_path }}"
+  register: rke2_server_token_stat
+
+- name: Bootstrap the first RKE2 server
+  ansible.builtin.shell: "{{ rke2_init_server_script_path }}"
+  args:
+    executable: /bin/bash
+  environment:
+    RKE2_LB_IP: "{{ rke2_lb_ip }}"
+  when: not rke2_server_token_stat.stat.exists

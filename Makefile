@@ -1,4 +1,4 @@
-.PHONY: help init plan apply destroy start stop validate fmt clean ansible-inventory ansible-push-files
+.PHONY: help init plan apply destroy start stop validate fmt clean ansible-inventory ansible-push-files ansible-rke2-cluster
 
 E ?= rke2
 TERRAFORM_DIR := terraform
@@ -52,3 +52,8 @@ ansible-inventory: ## Show the Ansible inventory for the selected environment.
 ansible-push-files: ## Push repo helper files into /home/ubuntu on the selected environment.
 	@ANSIBLE_CONFIG=ansible/ansible.cfg ANSIBLE_TF_ENV=$(E) uv run --project ansible ansible-playbook \
 		-i ansible/inventory/terraform_inventory.py ansible/playbooks/push-files.yml
+
+ansible-rke2-cluster: ## Bootstrap or reconcile the RKE2 cluster via Ansible.
+	@test "$(E)" = "rke2" || { echo "ansible-rke2-cluster requires E=rke2"; exit 1; }
+	@ANSIBLE_CONFIG=ansible/ansible.cfg ANSIBLE_TF_ENV=rke2 uv run --project ansible ansible-playbook \
+		-i ansible/inventory/terraform_inventory.py ansible/playbooks/rke2-cluster.yml

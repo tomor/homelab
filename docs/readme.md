@@ -34,7 +34,7 @@ Kubernetes Experiments on an M3 MacBook Pro
 [x] etcd backup, restore (RKE2)
 [x] load balancer for HA kube-api
 [x] ansible basic setup
-[] more ansible automation
+[x] rke2 cluster setup via ansible
 [] verify k8s HA for CP nodes
 [] service with ingress
 [] API gateway
@@ -93,12 +93,19 @@ make ansible-push-files E=rke2
 make ansible-push-files E=kubeadm
 ```
 
+Bootstrap or reconcile the RKE2 cluster end-to-end with Ansible:
+
+```bash
+make ansible-rke2-cluster
+```
+
 Notes:
 
 - The dynamic inventory reads `terraform output -json ansible_inventory` from `terraform/envs/<env>`.
 - The selected Terraform environment is passed through `ANSIBLE_TF_ENV` and defaults to `rke2` if not set.
 - Ansible connects as `ubuntu` and uses `~/.ssh/homelab_vm` by default.
-- The first Ansible slice is intentionally narrow: it pushes files only and does not run the bootstrap scripts or manage packages yet.
+- The base Ansible workflow still starts with file sync. Cluster automation is currently implemented only for RKE2.
+- The first cluster automation target is RKE2. The RKE2 playbook wraps the existing helper scripts, prepares nodes, bootstraps the first server, reads the token, and joins the remaining nodes.
 
 ## kubeadm notes
 

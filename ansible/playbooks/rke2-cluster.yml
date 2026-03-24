@@ -1,0 +1,88 @@
+---
+- name: Validate the RKE2 inventory shape
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Require at least one RKE2 server node
+      ansible.builtin.assert:
+        that:
+          - groups.get('server', []) | length > 0
+        fail_msg: "The RKE2 inventory must contain at least one host in the 'server' group."
+
+    - name: Require exactly one RKE2 load balancer node
+      ansible.builtin.assert:
+        that:
+          - groups.get('haproxy', []) | length == 1
+        fail_msg: "The RKE2 inventory must contain exactly one host in the 'haproxy' group."
+
+- name: Prepare the RKE2 nodes and refresh helper files
+  hosts: rke2:!haproxy
+  gather_facts: false
+  roles:
+    - push_files
+    - k8s_common
+    - rke2_prepare
+
+- name: Bootstrap the first RKE2 server and capture the cluster token
+  hosts: server
+  gather_facts: false
+  vars:
+    rke2_bootstrap_host: "{{ groups['server'] | sort | first }}"
+    rke2_lb_host: "{{ groups['haproxy'] | sort | first }}"
+    rke2_lb_ip: "{{ hostvars[rke2_lb_host].ansible_host }}"
+  tasks:
+    - name: Bootstrap the first server
+      ansible.builtin.include_role:
+        name: rke2_cluster
+        tasks_from: bootstrap_server
+      when: inventory_hostname == rke2_bootstrap_host
+
+    - name: Read the RKE2 node token from the first server
+      ansible.builtin.include_role:
+        name: rke2_cluster
+        tasks_from: read_token
+      when: inventory_hostname == rke2_bootstrap_host
+
+- name: Join additional RKE2 server nodes
+  hosts: server
+  gather_facts: false
+  serial: 1
+  vars:
+    rke2_bootstrap_host: "{{ groups['server'] | sort | first }}"
+    rke2_lb_host: "{{ groups['haproxy'] | sort | first }}"
+    rke2_lb_ip: "{{ hostvars[rke2_lb_host].ansible_host }}"
+    rke2_server_token: "{{ hostvars[rke2_bootstrap_host].rke2_server_token }}"
+  tasks:
+    - name: Join each additional server to the cluster
+      ansible.builtin.include_role:
+        name: rke2_cluster
+        tasks_from: join_server
+      when: inventory_hostname != rke2_bootstrap_host
+
+- name: Join RKE2 agent nodes
+  hosts: agent
+  gather_facts: false
+  vars:
+    rke2_bootstrap_host: "{{ groups['server'] | sort | first }}"
+    rke2_lb_host: "{{ groups['haproxy'] | sort | first }}"
+    rke2_lb_ip: "{{ hostvars[rke2_lb_host].ansible_host }}"
+    rke2_server_token: "{{ hostvars[rke2_bootstrap_host].rke2_server_token }}"
+  tasks:
+    - name: Join each agent to the cluster
+      ansible.builtin.include_role:
+        name: rke2_cluster
+        tasks_from: join_agent
+
+- name: Verify the RKE2 cluster from the first server
+  hosts: server
+  gather_facts: false
+  vars:
+    rke2_bootstrap_host: "{{ groups['server'] | sort | first }}"
+    rke2_expected_node_count: "{{ (groups.get('server', []) | length) + (groups.get('agent', []) | length) }}"
+  tasks:
+    - name: Verify node and pod health from the bootstrap server
+      ansible.builtin.include_role:
+        name: rke2_cluster
+        tasks_from: verify_cluster
+      when: inventory_hostname == rke2_bootstrap_host

@@ -1,0 +1,14 @@
+---
+- name: Check whether the RKE2 prepare step already ran
+  ansible.builtin.stat:
+    path: "{{ rke2_prepare_marker }}"
+  register: rke2_prepare_marker_stat
+
+- name: Run the RKE2 prepare helper script
+  ansible.builtin.shell: |
+    set -euo pipefail
+    {{ rke2_prepare_script_path }}
+    sudo touch {{ rke2_prepare_marker }}
+  args:
+    executable: /bin/bash
+  when: not rke2_prepare_marker_stat.stat.exists

@@ -1,0 +1,16 @@
+---
+- name: Check whether this RKE2 server is already joined
+  ansible.builtin.stat:
+    path: "{{ rke2_server_service_symlink }}"
+  register: rke2_join_server_stat
+
+- name: Join this server to the RKE2 cluster
+  ansible.builtin.shell: "{{ rke2_join_server_script_path }}"
+  args:
+    executable: /bin/bash
+  environment:
+    SERVER_URL: "https://{{ rke2_lb_ip }}:{{ rke2_registration_port }}"
+    RKE2_LB_IP: "{{ rke2_lb_ip }}"
+    RKE2_TOKEN: "{{ rke2_server_token }}"
+  when: not rke2_join_server_stat.stat.exists
+  no_log: true
