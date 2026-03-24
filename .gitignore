@@ -1,10 +1,11 @@
 # Terraform state and secrets
 **/.terraform/
 *.tfstate
-*.tfstate.backup
+*.tfstate.*
+.terraform.tfstate.lock.info
 
 # Cloud-init output (generated files)
-terraform/modules/multipass-cluster/cloud-init/.rendered/*.yaml
+terraform/envs/*/cloud-init/.rendered/*.yaml
 
 # OS
 .DS_Store
