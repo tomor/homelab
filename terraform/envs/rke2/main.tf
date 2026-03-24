@@ -65,10 +65,10 @@ resource "local_file" "base_cloud_init" {
 resource "local_file" "haproxy_cloud_init" {
   filename = "${local.cloud_init_dir}/.rendered/rke2-haproxy.yaml"
   content = templatefile("${local.cloud_init_dir}/haproxy.yaml.tftpl", {
-    ssh_authorized_key = local.ssh_authorized_key
-    cluster_name       = "rke2"
-    api_backends       = [for name in keys(local.server_nodes) : { name = name, address = multipass_instance.cluster_nodes[name].ipv4 }]
-    http_backends      = [for name in keys(local.agent_nodes) : { name = name, address = multipass_instance.cluster_nodes[name].ipv4 }]
+    ssh_authorized_key    = local.ssh_authorized_key
+    cluster_name          = "rke2"
+    api_backends          = [for name in keys(local.server_nodes) : { name = name, address = multipass_instance.cluster_nodes[name].ipv4 }]
+    http_backends         = [for name in keys(local.agent_nodes) : { name = name, address = multipass_instance.cluster_nodes[name].ipv4 }]
     registration_backends = [for name in keys(local.server_nodes) : { name = name, address = multipass_instance.cluster_nodes[name].ipv4 }]
   })
 }

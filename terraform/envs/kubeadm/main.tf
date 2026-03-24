@@ -51,9 +51,9 @@ resource "local_file" "base_cloud_init" {
 resource "local_file" "haproxy_cloud_init" {
   filename = "${local.cloud_init_dir}/.rendered/kubeadm-haproxy.yaml"
   content = templatefile("${local.cloud_init_dir}/haproxy.yaml.tftpl", {
-    ssh_authorized_key = local.ssh_authorized_key
-    cluster_name       = "kubeadm"
-    api_backends       = [for name in keys(local.control_plane_nodes) : { name = name, address = multipass_instance.cluster_nodes[name].ipv4 }]
+    ssh_authorized_key    = local.ssh_authorized_key
+    cluster_name          = "kubeadm"
+    api_backends          = [for name in keys(local.control_plane_nodes) : { name = name, address = multipass_instance.cluster_nodes[name].ipv4 }]
     registration_backends = null
   })
 }
