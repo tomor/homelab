@@ -33,7 +33,9 @@ Kubernetes Experiments on an M3 MacBook Pro
 [x] rke2 upgrade
 [x] etcd backup, restore (RKE2)
 [x] load balancer for HA kube-api
-[] test if the HA works
+[x] ansible basic setup
+[] more ansible automation
+[] verify k8s HA for CP nodes
 [] service with ingress
 [] API gateway
 [] etcd backup, restore (kubeadm)
@@ -59,6 +61,44 @@ make stop E=rke2
 - `E` selects the Terraform environment, for example `kubeadm` or `rke2`.
 - The Make targets resolve VM membership from the environment's Terraform output `vm_names`, so the environment must already exist (`make apply E=...`).
 - This is useful when a Multipass VM needs a clean restart without recreating the whole environment.
+
+## Ansible
+
+Ansible now provides a post-bootstrap way to push repo helper files that cloud-init originally copied only during VM creation.
+
+Initial setup:
+
+```bash
+uv sync --project ansible
+```
+
+Provisioned VMs are expected to accept the dedicated SSH keypair `~/.ssh/homelab_vm` and `~/.ssh/homelab_vm.pub`. If you do not already have it, create it with:
+
+```bash
+ssh-keygen -t ed25519 -f ~/.ssh/homelab_vm -C homelab-vm
+```
+
+That key is injected into new VMs by cloud-init. Existing VMs created before this change need to be recreated before direct SSH and Ansible will work.
+
+Inspect the Terraform-backed inventory:
+
+```bash
+make ansible-inventory E=rke2
+```
+
+Push the current repo helper files into `/home/ubuntu/` on every non-HAProxy VM in the selected environment:
+
+```bash
+make ansible-push-files E=rke2
+make ansible-push-files E=kubeadm
+```
+
+Notes:
+
+- The dynamic inventory reads `terraform output -json ansible_inventory` from `terraform/envs/<env>`.
+- The selected Terraform environment is passed through `ANSIBLE_TF_ENV` and defaults to `rke2` if not set.
+- Ansible connects as `ubuntu` and uses `~/.ssh/homelab_vm` by default.
+- The first Ansible slice is intentionally narrow: it pushes files only and does not run the bootstrap scripts or manage packages yet.
 
 ## kubeadm notes
 

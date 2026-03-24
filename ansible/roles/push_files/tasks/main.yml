@@ -1,0 +1,30 @@
+---
+- name: Validate that the current environment has a source directory
+  ansible.builtin.assert:
+    that:
+      - homelab_env in push_files_source_dirs
+    fail_msg: "No push-files source directory is defined for env '{{ homelab_env }}'."
+
+- name: Build the list of files to push for the current environment
+  ansible.builtin.set_fact:
+    push_files_list: >-
+      {{
+        (
+          lookup('ansible.builtin.fileglob', push_files_source_dirs[homelab_env] ~ '/*', wantlist=True)
+          + lookup('ansible.builtin.fileglob', push_files_source_dirs[homelab_env] ~ '/.*', wantlist=True)
+        )
+        | reject('search', '/\\.$')
+        | reject('search', '/\\.\\.$')
+        | sort
+      }}
+
+- name: Push files into the ubuntu home directory
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ push_files_dest_dir }}/{{ item | basename }}"
+    owner: ubuntu
+    group: ubuntu
+    mode: preserve
+  loop: "{{ push_files_list }}"
+  loop_control:
+    label: "{{ item | basename }}"

@@ -9,3 +9,6 @@ terraform/envs/*/cloud-init/.rendered/*.yaml
 
 # OS
 .DS_Store
+
+# Ansible local runtime
+ansible/.venv/

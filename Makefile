@@ -1,4 +1,4 @@
-.PHONY: help init plan apply destroy start stop validate fmt clean
+.PHONY: help init plan apply destroy start stop validate fmt clean ansible-inventory ansible-push-files
 
 E ?= rke2
 TERRAFORM_DIR := terraform
@@ -44,3 +44,11 @@ clean: ## Remove local Terraform state and cache for the selected environment.
 		$(ENV_DIR)/.terraform.lock.hcl \
 		$(ENV_DIR)/terraform.tfstate \
 		$(ENV_DIR)/terraform.tfstate.backup
+
+ansible-inventory: ## Show the Ansible inventory for the selected environment.
+	@ANSIBLE_CONFIG=ansible/ansible.cfg ANSIBLE_TF_ENV=$(E) uv run --project ansible ansible-inventory \
+		-i ansible/inventory/terraform_inventory.py --list
+
+ansible-push-files: ## Push repo helper files into /home/ubuntu on the selected environment.
+	@ANSIBLE_CONFIG=ansible/ansible.cfg ANSIBLE_TF_ENV=$(E) uv run --project ansible ansible-playbook \
+		-i ansible/inventory/terraform_inventory.py ansible/playbooks/push-files.yml

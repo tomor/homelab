@@ -1,0 +1,6 @@
+---
+- name: Push repo helper files into ubuntu home directories
+  hosts: all:!haproxy
+  gather_facts: false
+  roles:
+    - push_files

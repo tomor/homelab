@@ -1,0 +1,11 @@
+[project]
+name = "homelab-ansible"
+version = "0.1.0"
+description = "Ansible runtime for the homelab repository"
+requires-python = ">=3.11"
+dependencies = [
+  "ansible-core>=2.18,<2.19",
+]
+
+[tool.uv]
+package = false

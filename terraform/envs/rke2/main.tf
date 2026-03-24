@@ -14,8 +14,9 @@ terraform {
 }
 
 locals {
-  scripts_dir    = abspath("${path.module}/../../../scripts/rke2")
-  cloud_init_dir = abspath("${path.module}/cloud-init")
+  scripts_dir        = abspath("${path.module}/../../../scripts/rke2")
+  cloud_init_dir     = abspath("${path.module}/cloud-init")
+  ssh_authorized_key = trimspace(coalesce(var.ssh_authorized_key, file(pathexpand("~/.ssh/homelab_vm.pub"))))
   cluster_nodes = {
     for name, node in var.nodes : name => node
     if try(node.role, "") != "haproxy"
@@ -37,6 +38,7 @@ locals {
 resource "local_file" "rke2_cloud_init" {
   filename = "${local.cloud_init_dir}/.rendered/rke2.yaml"
   content = templatefile("${local.cloud_init_dir}/rke2.yaml.tftpl", {
+    ssh_authorized_key            = local.ssh_authorized_key
     rke2_prepare_script_b64       = base64encode(file("${local.scripts_dir}/rke2-prepare.sh"))
     rke2_init_server_script_b64   = base64encode(file("${local.scripts_dir}/rke2-init-server.sh"))
     rke2_join_server_script_b64   = base64encode(file("${local.scripts_dir}/rke2-join-server.sh"))
@@ -53,18 +55,26 @@ resource "local_file" "rke2_cloud_init" {
   })
 }
 
+resource "local_file" "base_cloud_init" {
+  filename = "${local.cloud_init_dir}/.rendered/base.yaml"
+  content = templatefile("${local.cloud_init_dir}/base.yaml.tftpl", {
+    ssh_authorized_key = local.ssh_authorized_key
+  })
+}
+
 resource "local_file" "haproxy_cloud_init" {
   filename = "${local.cloud_init_dir}/.rendered/rke2-haproxy.yaml"
   content = templatefile("${local.cloud_init_dir}/haproxy.yaml.tftpl", {
-    cluster_name          = "rke2"
-    api_backends          = [for name in keys(local.server_nodes) : { name = name, address = multipass_instance.cluster_nodes[name].ipv4 }]
-    http_backends         = [for name in keys(local.agent_nodes) : { name = name, address = multipass_instance.cluster_nodes[name].ipv4 }]
+    ssh_authorized_key = local.ssh_authorized_key
+    cluster_name       = "rke2"
+    api_backends       = [for name in keys(local.server_nodes) : { name = name, address = multipass_instance.cluster_nodes[name].ipv4 }]
+    http_backends      = [for name in keys(local.agent_nodes) : { name = name, address = multipass_instance.cluster_nodes[name].ipv4 }]
     registration_backends = [for name in keys(local.server_nodes) : { name = name, address = multipass_instance.cluster_nodes[name].ipv4 }]
   })
 }
 
 resource "multipass_instance" "cluster_nodes" {
-  depends_on = [local_file.rke2_cloud_init]
+  depends_on = [local_file.base_cloud_init, local_file.rke2_cloud_init]
 
   for_each = local.cluster_nodes
 
@@ -77,7 +87,7 @@ resource "multipass_instance" "cluster_nodes" {
   cloudinit_file = lookup({
     server = local_file.rke2_cloud_init.filename
     agent  = local_file.rke2_cloud_init.filename
-  }, try(each.value.role, ""), "${local.cloud_init_dir}/base.yaml")
+  }, try(each.value.role, ""), local_file.base_cloud_init.filename)
 }
 
 resource "multipass_instance" "load_balancer" {

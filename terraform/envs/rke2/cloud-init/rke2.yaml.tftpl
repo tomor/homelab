@@ -1,5 +1,11 @@
 #cloud-config
 
+users:
+  - default
+  - name: ubuntu
+    ssh_authorized_keys:
+      - ${ssh_authorized_key}
+
 packages:
   - curl
   - apt-transport-https

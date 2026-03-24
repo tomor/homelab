@@ -1,0 +1,6 @@
+---
+push_files_dest_dir: /home/ubuntu
+
+push_files_source_dirs:
+  rke2: "{{ role_path }}/../../../scripts/rke2"
+  kubeadm: "{{ role_path }}/../../../scripts/kubeadm"
