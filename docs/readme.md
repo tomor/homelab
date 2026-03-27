@@ -35,7 +35,7 @@ Kubernetes Experiments on an M3 MacBook Pro
 [x] load balancer for HA kube-api
 [x] ansible basic setup
 [x] rke2 cluster setup via ansible
-[] automated export of kubeconfig to workstation
+[x] automated export of kubeconfig to workstation
 [] verify k8s HA for CP nodes
 [] service with ingress
 [] API gateway
