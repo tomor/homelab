@@ -1,9 +1,15 @@
-.PHONY: help init plan apply destroy start stop validate fmt clean ansible-inventory ansible-push-files ansible-rke2-cluster
+.PHONY: help init plan apply destroy start stop validate fmt clean ansible-inventory ansible-push-files ansible-rke2-cluster ansible-rke2-kubeconfig
 
 E ?= rke2
 TERRAFORM_DIR := terraform
 ENV_DIR := $(TERRAFORM_DIR)/envs/$(E)
 TF_PARALLELISM ?= 1
+C ?=
+D ?=
+ANSIBLE_ARGS ?=
+NO_LOG ?=
+ANSIBLE_PLAYBOOK_FLAGS := $(if $(filter 1 true yes y,$(C)),-C,) $(if $(filter 1 true yes y,$(D)),-D,) $(ANSIBLE_ARGS)
+RKE2_NO_LOG_ARG := $(if $(filter 1 true yes y,$(NO_LOG)),-e rke2_no_log=true,)
 
 help: ## Show this help output.
 	@echo "Usage: make <target> E=<kubeadm|rke2>"
@@ -51,9 +57,14 @@ ansible-inventory: ## Show the Ansible inventory for the selected environment.
 
 ansible-push-files: ## Push repo helper files into /home/ubuntu on the selected environment.
 	@ANSIBLE_CONFIG=ansible/ansible.cfg ANSIBLE_TF_ENV=$(E) uv run --project ansible ansible-playbook \
-		-i ansible/inventory/terraform_inventory.py ansible/playbooks/push-files.yml
+		-i ansible/inventory/terraform_inventory.py ansible/playbooks/push-files.yml $(ANSIBLE_PLAYBOOK_FLAGS)
 
 ansible-rke2-cluster: ## Bootstrap or reconcile the RKE2 cluster via Ansible.
 	@test "$(E)" = "rke2" || { echo "ansible-rke2-cluster requires E=rke2"; exit 1; }
 	@ANSIBLE_CONFIG=ansible/ansible.cfg ANSIBLE_TF_ENV=rke2 uv run --project ansible ansible-playbook \
-		-i ansible/inventory/terraform_inventory.py ansible/playbooks/rke2-cluster.yml
+		-i ansible/inventory/terraform_inventory.py ansible/playbooks/rke2-cluster.yml $(RKE2_NO_LOG_ARG) $(ANSIBLE_PLAYBOOK_FLAGS)
+
+ansible-rke2-kubeconfig: ## Export the RKE2 kubeconfig to the workstation and update /etc/hosts.
+	@test "$(E)" = "rke2" || { echo "ansible-rke2-kubeconfig requires E=rke2"; exit 1; }
+	@ANSIBLE_CONFIG=ansible/ansible.cfg ANSIBLE_TF_ENV=rke2 uv run --project ansible ansible-playbook \
+		-i ansible/inventory/terraform_inventory.py ansible/playbooks/rke2-kubeconfig.yml --ask-become-pass $(ANSIBLE_PLAYBOOK_FLAGS)

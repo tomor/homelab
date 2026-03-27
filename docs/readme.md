@@ -35,6 +35,7 @@ Kubernetes Experiments on an M3 MacBook Pro
 [x] load balancer for HA kube-api
 [x] ansible basic setup
 [x] rke2 cluster setup via ansible
+[] automated export of kubeconfig to workstation
 [] verify k8s HA for CP nodes
 [] service with ingress
 [] API gateway
@@ -99,6 +100,14 @@ Bootstrap or reconcile the RKE2 cluster end-to-end with Ansible:
 make ansible-rke2-cluster
 ```
 
+Export the RKE2 kubeconfig to your workstation and update `/etc/hosts` for the API hostname:
+
+```bash
+make ansible-rke2-kubeconfig
+```
+
+This target prompts for your local sudo password before updating `/etc/hosts`.
+
 Notes:
 
 - The dynamic inventory reads `terraform output -json ansible_inventory` from `terraform/envs/<env>`.
@@ -106,6 +115,7 @@ Notes:
 - Ansible connects as `ubuntu` and uses `~/.ssh/homelab_vm` by default.
 - The base Ansible workflow still starts with file sync. Cluster automation is currently implemented only for RKE2.
 - The first cluster automation target is RKE2. The RKE2 playbook wraps the existing helper scripts, prepares nodes, bootstraps the first server, reads the token, and joins the remaining nodes.
+- The kubeconfig export target writes `~/.kube/homelab-rke2.yaml` and updates the local `/etc/hosts` entry for the current RKE2 API hostname.
 
 ## kubeadm notes
 

@@ -7,7 +7,7 @@
 - name: Run the RKE2 prepare helper script
   ansible.builtin.shell: |
     set -euo pipefail
-    {{ rke2_prepare_script_path }}
+    /bin/bash {{ rke2_prepare_script_path }}
     sudo touch {{ rke2_prepare_marker }}
   args:
     executable: /bin/bash

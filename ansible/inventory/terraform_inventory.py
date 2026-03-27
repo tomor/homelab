@@ -2,6 +2,7 @@
 
 import json
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -47,6 +48,20 @@ def read_terraform_inventory(repo_root: Path, env_name: str) -> dict[str, dict[s
     return payload
 
 
+def read_api_hostname(repo_root: Path, env_name: str) -> str | None:
+    tfvars_path = repo_root / "terraform" / "envs" / env_name / "haproxy.auto.tfvars"
+    if not tfvars_path.exists():
+        return None
+
+    pattern = re.compile(r'^\s*api_hostname\s*=\s*"([^"]+)"\s*$')
+    for line in tfvars_path.read_text().splitlines():
+        match = pattern.match(line)
+        if match:
+            return match.group(1)
+
+    return None
+
+
 def build_inventory(hosts: dict[str, dict[str, str]]) -> dict[str, object]:
     inventory: dict[str, object] = {
         "_meta": {"hostvars": {}},
@@ -65,6 +80,7 @@ def build_inventory(hosts: dict[str, dict[str, str]]) -> dict[str, object]:
             "ansible_host": metadata["ansible_host"],
             "ansible_user": "ubuntu",
             "ansible_ssh_private_key_file": resolve_private_key(),
+            "homelab_api_hostname": metadata.get("api_hostname"),
             "homelab_env": env_name,
             "homelab_role": role,
         }
@@ -90,6 +106,12 @@ def main() -> int:
     repo_root = resolve_repo_root()
     env_name = resolve_env()
     hosts = read_terraform_inventory(repo_root, env_name)
+    api_hostname = read_api_hostname(repo_root, env_name)
+
+    if api_hostname:
+        for metadata in hosts.values():
+            metadata["api_hostname"] = api_hostname
+
     sys.stdout.write(json.dumps(build_inventory(hosts), indent=2))
     return 0
 

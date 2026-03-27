@@ -5,11 +5,11 @@
   register: rke2_join_agent_stat
 
 - name: Join this agent to the RKE2 cluster
-  ansible.builtin.shell: "{{ rke2_join_agent_script_path }}"
+  ansible.builtin.shell: "/bin/bash {{ rke2_join_agent_script_path }}"
   args:
     executable: /bin/bash
   environment:
     SERVER_URL: "https://{{ rke2_lb_ip }}:{{ rke2_registration_port }}"
     RKE2_TOKEN: "{{ rke2_server_token }}"
   when: not rke2_join_agent_stat.stat.exists
-  no_log: true
+  no_log: "{{ rke2_no_log }}"

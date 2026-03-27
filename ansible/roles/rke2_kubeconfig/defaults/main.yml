@@ -1,0 +1,5 @@
+---
+rke2_workstation_kubeconfig_path: "{{ lookup('ansible.builtin.env', 'HOME') }}/.kube/homelab-rke2.yaml"
+rke2_workstation_kubeconfig_dir: "{{ rke2_workstation_kubeconfig_path | dirname }}"
+rke2_workstation_hosts_marker: "# managed by homelab ansible"
+rke2_workstation_api_port: 6443

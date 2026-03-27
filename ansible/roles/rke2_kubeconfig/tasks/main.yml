@@ -1,0 +1,29 @@
+---
+- name: Ensure the workstation kubeconfig directory exists
+  ansible.builtin.file:
+    path: "{{ rke2_workstation_kubeconfig_dir }}"
+    state: directory
+    mode: "0700"
+
+- name: Rewrite the RKE2 kubeconfig server endpoint
+  ansible.builtin.set_fact:
+    rke2_workstation_kubeconfig_content: >-
+      {{
+        rke2_remote_kubeconfig
+        | regex_replace('(?m)^([ ]*server: )https://.*$', '\1https://' ~ rke2_api_hostname ~ ':6443')
+      }}
+
+- name: Write the workstation kubeconfig
+  ansible.builtin.copy:
+    dest: "{{ rke2_workstation_kubeconfig_path }}"
+    content: "{{ rke2_workstation_kubeconfig_content }}"
+    mode: "0600"
+
+- name: Ensure the workstation has the RKE2 API hostname in /etc/hosts
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: '^.*\s{{ rke2_api_hostname | regex_escape() }}(\s|$).*'
+    line: "{{ rke2_lb_ip }} {{ rke2_api_hostname }} {{ rke2_workstation_hosts_marker }}"
+    state: present
+    create: false

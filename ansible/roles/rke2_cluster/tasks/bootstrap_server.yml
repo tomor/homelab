@@ -5,7 +5,7 @@
   register: rke2_server_token_stat
 
 - name: Bootstrap the first RKE2 server
-  ansible.builtin.shell: "{{ rke2_init_server_script_path }}"
+  ansible.builtin.shell: "/bin/bash {{ rke2_init_server_script_path }}"
   args:
     executable: /bin/bash
   environment:

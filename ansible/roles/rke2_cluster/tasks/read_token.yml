@@ -3,9 +3,9 @@
   ansible.builtin.command: "sudo cat {{ rke2_server_token_path }}"
   register: rke2_server_token_command
   changed_when: false
-  no_log: true
+  no_log: "{{ rke2_no_log }}"
 
 - name: Store the RKE2 server token for later plays
   ansible.builtin.set_fact:
     rke2_server_token: "{{ rke2_server_token_command.stdout }}"
-  no_log: true
+  no_log: "{{ rke2_no_log }}"
