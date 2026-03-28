@@ -6,10 +6,11 @@ Kubernetes Experiments on an M3 MacBook Pro
 ## How it started
 
 - MacOS with 36GB of RAM
-- Use terraform for managing VMs.
+- Use terraform for managing VMs
 - Pick the right virtualisation tool for MacOS
 - Setup terraform directory for provisioning one virtual machine (ubuntu) where I can later install k8s with kubeadm
  - Later on creating more VMs an do more experimentation with HA k8s cluster.
+ - Start with manually setting up the cluster, automate later
 
 ## Notes
 
@@ -20,31 +21,32 @@ Kubernetes Experiments on an M3 MacBook Pro
   192.168.2.1 via 192.168.2.25 dev tunl0 proto bird onlink
   ``` 
 - I've switched to Flannel which works fine (kubeadm installed k8s)
+- The RKE2 cluster uses canal, it doesn't have that issue
 
 
 ## Progress tracking
 
-[x] basic terrraform setups for 1 local VM in multipass
-[x] install kubernetes manually to one host
-[x] test VirtualBox 
-[x] test joining multiple worker nodes
-[x] test joining master nodes
-[x] test k8s upgrade, put some deployments there to see how they do
-[x] host os upgrade with restart
-[x] install RKE2 cluster
-[x] rke2 upgrade
-[x] etcd backup, restore (RKE2)
-[x] load balancer for HA kube-api
-[x] ansible basic setup
-[x] rke2 cluster setup via ansible
-[x] automated export of kubeconfig to workstation
-[x] verify k8s HA for CP nodes
-[x] service with ingress
-[] storage
-[] host packages auto update (suggestions to update?)
-[] k8s auto update (suggestions to update?)
-[] API gateway
-[] etcd backup, restore (kubeadm)
+- [x] basic terrraform setups for 1 local VM in multipass
+- [x] install kubernetes manually to one host
+- [x] test VirtualBox 
+- [x] test joining multiple worker nodes
+- [x] test joining master nodes
+- [x] test k8s upgrade, put some deployments there to see how they do
+- [x] host os upgrade with restart
+- [x] install RKE2 cluster
+- [x] rke2 upgrade
+- [x] etcd backup, restore (RKE2)
+- [x] load balancer for HA kube-api
+- [x] ansible basic setup
+- [x] rke2 cluster setup via ansible
+- [x] automated export of kubeconfig to workstation
+- [x] verify k8s HA for CP nodes
+- [x] service with ingress
+- [] storage
+- [] host packages auto update (suggestions to update?)
+- [] k8s auto update (suggestions to update?)
+- [] API gateway
+- [] etcd backup, restore (kubeadm)
 
 
 ## Multipass troubleshooting
