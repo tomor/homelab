@@ -36,7 +36,7 @@ Kubernetes Experiments on an M3 MacBook Pro
 [x] ansible basic setup
 [x] rke2 cluster setup via ansible
 [x] automated export of kubeconfig to workstation
-[] verify k8s HA for CP nodes
+[x] verify k8s HA for CP nodes
 [] service with ingress
 [] API gateway
 [] etcd backup, restore (kubeadm)
