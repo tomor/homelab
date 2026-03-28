@@ -1,6 +1,6 @@
 ---
 - name: Wait until the expected number of RKE2 nodes appears
-  ansible.builtin.command: "sudo {{ rke2_kubectl_path }} get nodes -o wide --no-headers"
+  ansible.builtin.command: "{{ rke2_kubectl_path }} get nodes -o wide --no-headers"
   environment:
     KUBECONFIG: "{{ rke2_kubeconfig_path }}"
   register: rke2_nodes_command
@@ -10,13 +10,13 @@
   until: rke2_nodes_command.stdout_lines | length >= rke2_expected_node_count | int
 
 - name: List cluster nodes
-  ansible.builtin.command: "sudo {{ rke2_kubectl_path }} get nodes -o wide"
+  ansible.builtin.command: "{{ rke2_kubectl_path }} get nodes -o wide"
   environment:
     KUBECONFIG: "{{ rke2_kubeconfig_path }}"
   changed_when: false
 
 - name: List cluster pods
-  ansible.builtin.command: "sudo {{ rke2_kubectl_path }} get pods -A"
+  ansible.builtin.command: "{{ rke2_kubectl_path }} get pods -A"
   environment:
     KUBECONFIG: "{{ rke2_kubeconfig_path }}"
   changed_when: false

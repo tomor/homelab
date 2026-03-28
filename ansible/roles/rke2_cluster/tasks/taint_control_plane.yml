@@ -1,0 +1,29 @@
+---
+- name: Read taints for the target control-plane node
+  ansible.builtin.command:
+    argv:
+      - "{{ rke2_kubectl_path }}"
+      - get
+      - node
+      - "{{ rke2_target_node }}"
+      - -o
+      - jsonpath={range .spec.taints[*]}{.key}={.effect}{"\n"}{end}
+  environment:
+    KUBECONFIG: "{{ rke2_kubeconfig_path }}"
+  register: rke2_control_plane_taints_command
+  changed_when: false
+
+- name: Apply the control-plane taint to the target node
+  ansible.builtin.command:
+    argv:
+      - "{{ rke2_kubectl_path }}"
+      - taint
+      - node
+      - "{{ rke2_target_node }}"
+      - "{{ rke2_control_plane_taint_key }}:{{ rke2_control_plane_taint_effect }}"
+      - --overwrite
+  environment:
+    KUBECONFIG: "{{ rke2_kubeconfig_path }}"
+  when:
+    - rke2_control_plane_taint_enabled | bool
+    - (rke2_control_plane_taints_command.stdout_lines | default([])) is not contains(rke2_control_plane_taint_key ~ '=' ~ rke2_control_plane_taint_effect)

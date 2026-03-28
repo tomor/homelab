@@ -37,10 +37,12 @@ Kubernetes Experiments on an M3 MacBook Pro
 [x] rke2 cluster setup via ansible
 [x] automated export of kubeconfig to workstation
 [x] verify k8s HA for CP nodes
-[] service with ingress
+[x] service with ingress
+[] storage
+[] host packages auto update (suggestions to update?)
+[] k8s auto update (suggestions to update?)
 [] API gateway
 [] etcd backup, restore (kubeadm)
-[] storage
 
 
 ## Multipass troubleshooting

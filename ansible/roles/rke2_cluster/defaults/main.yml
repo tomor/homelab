@@ -9,6 +9,9 @@ rke2_kubectl_path: /var/lib/rancher/rke2/bin/kubectl
 rke2_registration_port: 9345
 rke2_kubeconfig_path: /etc/rancher/rke2/rke2.yaml
 rke2_kubeconfig_export_mode: "0644"
+rke2_control_plane_taint_enabled: true
+rke2_control_plane_taint_key: node-role.kubernetes.io/control-plane
+rke2_control_plane_taint_effect: NoSchedule
 rke2_cluster_verify_retries: 20
 rke2_cluster_verify_delay: 15
 rke2_no_log: false

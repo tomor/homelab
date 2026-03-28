@@ -74,6 +74,24 @@
         name: rke2_cluster
         tasks_from: join_agent
 
+- name: Taint RKE2 control-plane nodes from the first server
+  hosts: server
+  gather_facts: false
+  vars:
+    rke2_bootstrap_host: "{{ groups['server'] | sort | first }}"
+  tasks:
+    - name: Apply the control-plane taint to each server node
+      ansible.builtin.include_role:
+        name: rke2_cluster
+        tasks_from: taint_control_plane
+      vars:
+        rke2_target_node: "{{ server_node }}"
+      loop: "{{ groups['server'] | sort }}"
+      loop_control:
+        loop_var: server_node
+      when:
+        - inventory_hostname == rke2_bootstrap_host
+
 - name: Verify the RKE2 cluster from the first server
   hosts: server
   gather_facts: false
