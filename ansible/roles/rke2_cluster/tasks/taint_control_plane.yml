@@ -8,10 +8,22 @@
       - "{{ rke2_target_node }}"
       - -o
       - jsonpath={range .spec.taints[*]}{.key}={.effect}{"\n"}{end}
+  check_mode: false
   environment:
     KUBECONFIG: "{{ rke2_kubeconfig_path }}"
   register: rke2_control_plane_taints_command
   changed_when: false
+
+- name: Report a missing control-plane taint in check mode
+  ansible.builtin.debug:
+    msg: >-
+      Node {{ rke2_target_node }} would be tainted with
+      {{ rke2_control_plane_taint_key }}:{{ rke2_control_plane_taint_effect }}.
+  changed_when: true
+  when:
+    - ansible_check_mode
+    - rke2_control_plane_taint_enabled | bool
+    - (rke2_control_plane_taints_command.stdout_lines | default([])) is not contains(rke2_control_plane_taint_key ~ '=' ~ rke2_control_plane_taint_effect)
 
 - name: Apply the control-plane taint to the target node
   ansible.builtin.command:
@@ -25,5 +37,6 @@
   environment:
     KUBECONFIG: "{{ rke2_kubeconfig_path }}"
   when:
+    - not ansible_check_mode
     - rke2_control_plane_taint_enabled | bool
     - (rke2_control_plane_taints_command.stdout_lines | default([])) is not contains(rke2_control_plane_taint_key ~ '=' ~ rke2_control_plane_taint_effect)

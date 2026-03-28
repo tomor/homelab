@@ -1,6 +1,7 @@
 ---
 - name: Wait until the expected number of RKE2 nodes appears
   ansible.builtin.command: "{{ rke2_kubectl_path }} get nodes -o wide --no-headers"
+  check_mode: false
   environment:
     KUBECONFIG: "{{ rke2_kubeconfig_path }}"
   register: rke2_nodes_command
@@ -11,12 +12,14 @@
 
 - name: List cluster nodes
   ansible.builtin.command: "{{ rke2_kubectl_path }} get nodes -o wide"
+  check_mode: false
   environment:
     KUBECONFIG: "{{ rke2_kubeconfig_path }}"
   changed_when: false
 
 - name: List cluster pods
   ansible.builtin.command: "{{ rke2_kubectl_path }} get pods -A"
+  check_mode: false
   environment:
     KUBECONFIG: "{{ rke2_kubeconfig_path }}"
   changed_when: false
