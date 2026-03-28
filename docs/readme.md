@@ -3,11 +3,13 @@
 Kubernetes Experiments on an M3 MacBook Pro
 
 
-## Basics
+## How it started
 
-- My laptop has 36GB of RAM
+- MacOS with 36GB of RAM
 - Use terraform for managing VMs.
-- After picking the right virtualisation tool for MacOS I want to setup the terraform directory for provisioning one virtual machine (ubuntu) where I can later install k8s with kubeadm - later on creating more VMs an do more experimentation with HA k8s cluster.
+- Pick the right virtualisation tool for MacOS
+- Setup terraform directory for provisioning one virtual machine (ubuntu) where I can later install k8s with kubeadm
+ - Later on creating more VMs an do more experimentation with HA k8s cluster.
 
 ## Notes
 
